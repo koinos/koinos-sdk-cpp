@@ -1,0 +1,30 @@
+#pragma once
+#define KOINOS_SYSTEM_CALL_ID_prints 0x9b229941
+
+#define KOINOS_SYSTEM_CALL_ID_verify_block_header 0x9625504e
+
+#define KOINOS_SYSTEM_CALL_ID_apply_block 0x94ab4ff5
+
+#define KOINOS_SYSTEM_CALL_ID_apply_transaction 0x9d8b55da
+
+#define KOINOS_SYSTEM_CALL_ID_apply_reserved_operation 0x9aa85924
+
+#define KOINOS_SYSTEM_CALL_ID_apply_upload_contract_operation 0x9e6ea937
+
+#define KOINOS_SYSTEM_CALL_ID_apply_execute_contract_operation 0x92184686
+
+#define KOINOS_SYSTEM_CALL_ID_apply_set_system_call_operation 0x9579a45c
+
+#define KOINOS_SYSTEM_CALL_ID_db_put_object 0x971ec7a2
+
+#define KOINOS_SYSTEM_CALL_ID_db_get_object 0x9766a8fb
+
+#define KOINOS_SYSTEM_CALL_ID_db_get_next_object 0x99a398e8
+
+#define KOINOS_SYSTEM_CALL_ID_db_get_prev_object 0x9bd3767c
+
+#define KOINOS_SYSTEM_CALL_ID_get_contract_args_size 0x9b0d8fd9
+
+#define KOINOS_SYSTEM_CALL_ID_get_contract_args 0x9fbba198
+
+#define KOINOS_SYSTEM_CALL_ID_exit_contract 0x98df75b0
