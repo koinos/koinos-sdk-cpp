@@ -3,6 +3,11 @@ cmake_minimum_required (VERSION 3.10.2)
 
 project( koinos_system )
 
+set(VERSION_MAJOR 0)
+set(VERSION_MINOR 0)
+set(VERSION_PATCH 1)
+set(VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -43,4 +48,11 @@ if(${CMAKE_GENERATOR} MATCHES "Xcode")
   set(CMAKE_XCODE_GENERATE_SCHEME YES)
 endif()
 
-add_subdirectory(libraries)
+### Configure the KoinosWasmToolchain.cmakes
+set(CDT_ROOT_DIR ${CMAKE_BINARY_DIR})
+
+configure_file(${CMAKE_SOURCE_DIR}/cmake/KoinosWasmToolchain.cmake.in ${CMAKE_BINARY_DIR}/lib/cmake/koinos-cdt/KoinosWasmToolchain.cmake @ONLY)
+
+set(CDT_ROOT_DIR "${CMAKE_INSTALL_PREFIX}/koinos-cdt")
+
+configure_file(${CMAKE_SOURCE_DIR}/cmake/KoinosWasmToolchain.cmake.in ${CMAKE_BINARY_DIR}/cmake/KoinosWasmToolchain.cmake @ONLY)
