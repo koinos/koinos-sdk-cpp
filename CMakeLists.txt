@@ -5,8 +5,6 @@ project( koinos-cdt )
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-include( KoinosWasiSDK )
-
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
 set(VERSION_PATCH 1)
@@ -27,7 +25,7 @@ set(CMAKE_SYSTEM_NAME "Generic")
 set(CMAKE_SYSTEM_PROCESSOR "wasm")
 
 if( NOT KOINOS_WASI_SDK_PATH )
-   set(KOINOS_WASI_SDK_PATH /opt/koinos-wasi-sdk)
+   set(KOINOS_WASI_SDK_PATH ${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/build/install/opt/wasi-sdk)
 endif( NOT KOINOS_WASI_SDK_PATH )
 
 set(CMAKE_SYSROOT "${KOINOS_WASI_SDK_PATH}/share/wasi-sysroot")
@@ -42,6 +40,8 @@ set(CMAKE_OBJCOPY      "${KOINOS_WASI_SDK_PATH}/bin/objcopy")
 set(CMAKE_OBJDUMP      "${KOINOS_WASI_SDK_PATH}/bin/objdump")
 set(CMAKE_RANLIB       "${KOINOS_WASI_SDK_PATH}/bin/ranlib")
 set(CMAKE_STRIP        "${KOINOS_WASI_SDK_PATH}/bin/strip")
+
+include( KoinosWasiSDK )
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
@@ -60,3 +60,5 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/KoinosWasmToolchain.cmake.in ${CMAKE_BI
 set(CDT_ROOT_DIR "${CMAKE_INSTALL_PREFIX}/koinos-cdt")
 
 configure_file(${CMAKE_SOURCE_DIR}/cmake/KoinosWasmToolchain.cmake.in ${CMAKE_BINARY_DIR}/cmake/KoinosWasmToolchain.cmake @ONLY)
+
+add_subdirectory( libraries )

@@ -6,6 +6,8 @@ target_link_libraries( koinos_wasi_api koinos_api )
 # No target_include_directories for now
 # target_include_directories( koinos_wasi_api PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+add_dependencies( koinos_wasi_api koinos_wasi_sdk )
+
 install( TARGETS
    koinos_wasi_api
 
