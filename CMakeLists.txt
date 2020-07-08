@@ -1,7 +1,11 @@
 
 cmake_minimum_required (VERSION 3.10.2)
 
-project( koinos_system )
+project( koinos-cdt )
+
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+include( KoinosWasiSDK )
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
