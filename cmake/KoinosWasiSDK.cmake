@@ -13,7 +13,7 @@ if( NOT KOINOS_WASI_SDK_PATH )
    execute_process( COMMAND "${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/llvm_version.sh ${LLVM_PROJ_DIR}"
       OUTPUT_VARIABLE CLANG_VERSION )
 
-   set( DEBUG_PREFIX_MAP -fdebug-PREFIX-map=${ROOT_DIR}=wasisdk://v${VERSION})
+   set( DEBUG_PREFIX_MAP -fdebug-prefix-map=${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk=wasisdk://v${VERSION})
 
    add_custom_target( llvm_config
       DEPENDS
@@ -84,6 +84,8 @@ if( NOT KOINOS_WASI_SDK_PATH )
       COMMAND make -C ${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/src/wasi-libc
               WASM_CC=${CMAKE_BINARY_DIR}/install/bin/clang
               SYSROOT=${CMAKE_BINARY_DIR}/share/wasi-sysroot
+
+      DEPENDS llvm
    )
 
    #ExternalProject_Add(
