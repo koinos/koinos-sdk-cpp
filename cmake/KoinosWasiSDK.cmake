@@ -8,12 +8,31 @@ if( NOT KOINOS_WASI_SDK_PATH )
 
    set( ROOT_DIR ${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk )
    set( LLVM_PROJ_DIR ${ROOT_DIR}/src/llvm_project )
-   set( BUILD_PREFIX ${PREFIX} )
+   set( BUILD_PREFIX ${CMAKE_BINARY_DIR}/install/${PREFIX} )
 
    execute_process( COMMAND "${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/llvm_version.sh ${LLVM_PROJ_DIR}"
       OUTPUT_VARIABLE CLANG_VERSION )
 
    set( DEBUG_PREFIX_MAP -fdebug-prefix-map=${ROOT_DIR}=wasisdk://v${VERSION})
+
+   add_custom_target( llvm_config
+      DEPENDS
+         ${BUILD_PREFIX}/share/misc/config.sub
+         ${BUILD_PREFIX}/share/misc/config.guess
+         ${BUILD_PREFIX}/share/cmake/wasi-sdk.cmake
+   )
+
+   add_custom_command(
+      COMMAND mkdir -p ${BUILD_PREFIX}/share/misc
+      COMMAND cp ${ROOT_DIR}/src/config/config.sub ${ROOT_DIR}/src/config/config.guess ${BUILD_PREFIX}/share/misc
+      COMMAND mkdir -p ${BUILD_PREFIX}/share/cmake
+      COMMAND cp ${ROOT_DIR}/wasi-sdk.cmake ${BUILD_PREFIX}/share/cmake
+
+      OUTPUT
+         ${BUILD_PREFIX}/share/misc/config.sub
+         ${BUILD_PREFIX}/share/misc/config.guess
+         ${BUILD_PREFIX}/share/cmake/wasi-sdk.cmake
+   )
 
    ExternalProject_Add(
       llvm
@@ -56,7 +75,7 @@ if( NOT KOINOS_WASI_SDK_PATH )
                  -DCMAKE_INSTALL_PREFIX=${PREFIX}/lib/clang/${CLANG_VERSION}/
                  -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
 
-      DEPENDS llvm
+      DEPENDS llvm llvm_config
 
       SOURCE_DIR ${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/src/llvm-project/compiler-rt
       BINARY_DIR ${CMAKE_BINARY_DIR}/host/koinos-wasi-sdk/src/llvm-project/compiler-rt
