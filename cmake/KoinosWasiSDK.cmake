@@ -53,6 +53,7 @@ if( NOT KOINOS_WASI_SDK_PATH )
       objdump
       objcopy
       c++filt
+      llvm-config
       install )
 
    ExternalProject_Add(
@@ -61,7 +62,7 @@ if( NOT KOINOS_WASI_SDK_PATH )
                  -DLLVM_TARGETS_TO_BUILD=WebAssembly
                  -DLLVM_DEFAULT_TARGET_TRIPLE=wasm32-wasi
                  -DLLVM_ENABLE_PROJECTS=lld|clang|clang-tools-extra
-                 -DDEFAULT_SYSROOT=${PREFIX}/share/wasi-sysroot
+                 -DDEFAULT_SYSROOT=${CMAKE_BINARY_DIR}/install/share/wasi-sysroot
                  -DLLVM_INSTALL_BINUTILS_SYMLINKS=TRUE
                  -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/install
 
@@ -78,8 +79,30 @@ if( NOT KOINOS_WASI_SDK_PATH )
 
    # Build wasi-libc
 
-   add_custom_target( wasi_libc )
-   add_dependencies( wasi_libc llvm )
+   add_custom_target(
+      wasi_libc
+      COMMAND make -C ${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/src/wasi-libc
+              WASM_CC=${CMAKE_BINARY_DIR}/install/bin/clang
+              SYSROOT=${CMAKE_BINARY_DIR}/share/wasi-sysroot
+   )
+
+   #ExternalProject_Add(
+   #   wasi_libc
+   #   CMAKE_ARGS -DCMAKE_BUILD_TYPE=RelWithDebInfo
+   #              -DCMAKE_C_COMPILER=${CMAKE_BINARY_DIR}/install/bin/clang
+   #              --sysroot=${CMAKE_BINARY_DIR}/install/share/wasi-sysroot
+   #              -DCMAKE_SYSTEM_NAME=wasi
+#
+   #   DEPENDS llvm
+#
+   #   SOURCE_DIR ${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/src/wasi-libc
+   #   BINARY_DIR ${CMAKE_BINARY_DIR}/wasi-libc
+   #   UPDATE_COMMAND  ""
+   #   PATCH_COMMAND   ""
+   #   TEST_COMMAND    ""
+   #   INSTALL_COMMAND ""
+   #   BUILD_ALWAYS 1
+   #)
 
    message(STATUS "${COMPILER_RT_DEFAULT_TARGET_TRIPLE}")
    message(STATUS "${CMAKE_C_COMPILER}")
@@ -94,18 +117,18 @@ if( NOT KOINOS_WASI_SDK_PATH )
                  -DCOMPILER_RT_HAS_FPIC_FLAG=OFF
                  -DCOMPILER_RT_ENABLE_IOS=OFF
                  -DCOMPILER_RT_DEFAULT_TARGET_ONLY=On
-                 -DWASI_SDK_PREFIX=${BUILD_PREFIX}
+                 -DWASI_SDK_PREFIX=${CMAKE_BINARY_DIR}/install
                  -DCMAKE_C_FLAGS="-O1 ${DEBUG_PREFIX_MAP}"
-                 -DLLVM_CONFIG_PATH=${CMAKE_BINARY_DIR}/host/koinos-wasi-sdk/src/llvm-project/llvm/bin/llvm-config
+                 -DLLVM_CONFIG_PATH=${CMAKE_BINARY_DIR}/install/bin/llvm-config
                  -DCOMPILER_RT_OS_DIR=wasi
                  -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
-                 -DCMAKE_INSTALL_PREFIX="${CMAKE_BINARY_DIR}/install/${PREFIX}"
+                 -DCMAKE_INSTALL_PREFIX="${CMAKE_BINARY_DIR}/install"
 
-      DEPENDS llvm llvm_config
+      DEPENDS llvm llvm_config wasi_libc
 
       SOURCE_DIR ${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/src/llvm-project/compiler-rt
       BINARY_DIR ${CMAKE_BINARY_DIR}/llvm-project/compiler-rt
-      BUILD_COMMAND   "${CMAKE_COMMAND} --build . --install"
+      BUILD_COMMAND   ${CMAKE_COMMAND} --build . --target compiler-rt install
       UPDATE_COMMAND  ""
       PATCH_COMMAND   ""
       TEST_COMMAND    ""
@@ -133,7 +156,7 @@ if( NOT KOINOS_WASI_SDK_PATH )
                  -DLIBCXX_CXX_ABI_INCLUDE_PATHS=${LLVM_PROJ_DIR}/libcxxabi/include
                  -DLIBCXX_HAS_MUSL_LIBC:BOOL=ON
                  -DLIBCXX_ABI_VERSION=2
-                 -DWASI_SDK_PREFIX=${BUILD_PREFIX}
+                 -DWASI_SDK_PREFIX=${CMAKE_BINARY_DIR}/install
                  --debug-trycompile
                  -DCMAKE_C_FLAGS="${DEBUG_PREFIX_MAP}"
                  -DCMAKE_CXX_FLAGS="${DEBUG_PREFIX_MAP}"
@@ -174,7 +197,7 @@ if( NOT KOINOS_WASI_SDK_PATH )
                  -DLLVM_CONFIG_PATH=${CMAKE_BINARY_DIR}/host/koinos-wasi-sdk/src/llvm-project/llvm/bin/llvm-config
                  -DCMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/wasi-sdk.cmake
                  -DCMAKE_STAGING_PREFIX=${PREFIX}/share/wasi-sysroot
-                 -DWASI_SDK_PREFIX=${BUILD_PREFIX}
+                 -DWASI_SDK_PREFIX=${CMAKE_BINARY_DIR}/install
                  -DUNIX:BOOL=ON
                  --debug-trycompile
                  -DCMAKE_C_FLAGS="${DEBUG_PREFIX_MAP}"
