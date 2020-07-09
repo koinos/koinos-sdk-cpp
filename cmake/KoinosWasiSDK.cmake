@@ -3,7 +3,7 @@ include( ExternalProject )
 if( NOT KOINOS_WASI_SDK_PATH )
 
    if( NOT PREFIX )
-      set( PREFIX "/opt/wasi-sdk" )
+      set( PREFIX /opt/wasi-sdk )
    endif()
 
    set( ROOT_DIR ${CMAKE_BINARY_DIR}/host/koinos-wasi-sdk )
@@ -13,7 +13,7 @@ if( NOT KOINOS_WASI_SDK_PATH )
    execute_process( COMMAND "${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/llvm_version.sh ${LLVM_PROJ_DIR}"
       OUTPUT_VARIABLE CLANG_VERSION )
 
-   set( DEBUG_PREFIX_MAP -fdebug-prefix-map=${ROOT_DIR}=wasisdk://v${VERSION})
+   set( DEBUG_PREFIX_MAP -fdebug-PREFIX-map=${ROOT_DIR}=wasisdk://v${VERSION})
 
    add_custom_target( llvm_config
       DEPENDS
@@ -34,23 +34,45 @@ if( NOT KOINOS_WASI_SDK_PATH )
          ${BUILD_PREFIX}/share/cmake/wasi-sdk.cmake
    )
 
+   set( LLVM_TARGETS
+      clang
+      clang-format
+      clang-tidy
+      clang-apply-replacements
+      lld
+      llvm-ranlib
+      llvm-strip
+      llvm-dwarfdump
+      clang-resource-headers
+      ar
+      ranlib
+      strip
+      nm
+      size
+      strings
+      objdump
+      objcopy
+      c++filt
+      install )
+
    ExternalProject_Add(
       llvm
       CMAKE_ARGS -DCMAKE_BUILD_TYPE=MinSizeRel
                  -DLLVM_TARGETS_TO_BUILD=WebAssembly
                  -DLLVM_DEFAULT_TARGET_TRIPLE=wasm32-wasi
-                 -DLLVM_ENABLE_PROJECTS="lld;clang;clang-tools-extra"
+                 -DLLVM_ENABLE_PROJECTS=lld|clang|clang-tools-extra
                  -DDEFAULT_SYSROOT=${PREFIX}/share/wasi-sysroot
                  -DLLVM_INSTALL_BINUTILS_SYMLINKS=TRUE
-                 -DCMAKE_INSTALL_PREFIX="$CMAKE_BINARY_DIR}/install/${prefix}"
+                 -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/install
 
       SOURCE_DIR ${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/src/llvm-project/llvm
       BINARY_DIR ${CMAKE_BINARY_DIR}/llvm-project/llvm
-      BUILD_COMMAND   "cmake --build . --install"
+      BUILD_COMMAND   cmake --build . --target ${LLVM_TARGETS}
       UPDATE_COMMAND  ""
       PATCH_COMMAND   ""
       TEST_COMMAND    ""
       INSTALL_COMMAND ""
+      LIST_SEPARATOR  |
       BUILD_ALWAYS 1
    )
 
@@ -77,13 +99,13 @@ if( NOT KOINOS_WASI_SDK_PATH )
                  -DLLVM_CONFIG_PATH=${CMAKE_BINARY_DIR}/host/koinos-wasi-sdk/src/llvm-project/llvm/bin/llvm-config
                  -DCOMPILER_RT_OS_DIR=wasi
                  -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
-                 -DCMAKE_INSTALL_PREFIX="$CMAKE_BINARY_DIR}/install/${prefix}"
+                 -DCMAKE_INSTALL_PREFIX="${CMAKE_BINARY_DIR}/install/${PREFIX}"
 
       DEPENDS llvm llvm_config
 
       SOURCE_DIR ${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/src/llvm-project/compiler-rt
       BINARY_DIR ${CMAKE_BINARY_DIR}/llvm-project/compiler-rt
-      BUILD_COMMAND   "cmake --build . --install"
+      BUILD_COMMAND   "${CMAKE_COMMAND} --build . --install"
       UPDATE_COMMAND  ""
       PATCH_COMMAND   ""
       TEST_COMMAND    ""
@@ -116,13 +138,13 @@ if( NOT KOINOS_WASI_SDK_PATH )
                  -DCMAKE_C_FLAGS="${DEBUG_PREFIX_MAP}"
                  -DCMAKE_CXX_FLAGS="${DEBUG_PREFIX_MAP}"
                  -DLIBCXX_LIBDIR_SUFFIX=/wasm32-wasi
-                 -DCMAKE_INSTALL_PREFIX="$CMAKE_BINARY_DIR}/install/${prefix}"
+                 -DCMAKE_INSTALL_PREFIX="${CMAKE_BINARY_DIR}/install/${PREFIX}"
 
       DEPENDS llvm compiler_rt wasi_libc
 
       SOURCE_DIR ${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/src/llvm-project/libcxx
       BINARY_DIR ${CMAKE_BINARY_DIR}/llvm-project/libcxx
-      BUILD_COMMAND   "cmake --build . --install"
+      BUILD_COMMAND   "${CMAKE_COMMAND} --build . --install"
       UPDATE_COMMAND  ""
       PATCH_COMMAND   ""
       TEST_COMMAND    ""
@@ -158,7 +180,7 @@ if( NOT KOINOS_WASI_SDK_PATH )
                  -DCMAKE_C_FLAGS="${DEBUG_PREFIX_MAP}"
                  -DCMAKE_CXX_FLAGS="${DEBUG_PREFIX_MAP}"
                  -DLIBCXXABI_LIBDIR_SUFFIX=$(ESCAPE_SLASH)/wasm32-wasi
-                 -DCMAKE_INSTALL_PREFIX="$CMAKE_BINARY_DIR}/install/${prefix}"
+                 -DCMAKE_INSTALL_PREFIX="${CMAKE_BINARY_DIR}/install/${PREFIX}"
 
       DEPENDS llvm libcxx
 
