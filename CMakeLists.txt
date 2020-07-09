@@ -24,6 +24,8 @@ set(CMAKE_CROSSCOMPILING 1)
 set(CMAKE_SYSTEM_NAME "Generic")
 set(CMAKE_SYSTEM_PROCESSOR "wasm")
 
+include( KoinosWasiSDK )
+
 if( NOT KOINOS_WASI_SDK_PATH )
    set(KOINOS_WASI_SDK_PATH ${CMAKE_SOURCE_DIR}/host/koinos-wasi-sdk/build/install/opt/wasi-sdk)
 endif( NOT KOINOS_WASI_SDK_PATH )
@@ -40,8 +42,6 @@ set(CMAKE_OBJCOPY      "${KOINOS_WASI_SDK_PATH}/bin/objcopy")
 set(CMAKE_OBJDUMP      "${KOINOS_WASI_SDK_PATH}/bin/objdump")
 set(CMAKE_RANLIB       "${KOINOS_WASI_SDK_PATH}/bin/ranlib")
 set(CMAKE_STRIP        "${KOINOS_WASI_SDK_PATH}/bin/strip")
-
-include( KoinosWasiSDK )
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
