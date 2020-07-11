@@ -14,6 +14,6 @@ set(KOINOS_CDT_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/koins-cdt)
 set(INSTALL_KOINOS_TYPES ON)
 
 include( KoinosWasiSDK )
-include( KoinosLibraries )
 include( KoinosConfigureToolchain )
+include( KoinosLibraries )
 
