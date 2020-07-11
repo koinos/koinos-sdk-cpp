@@ -3,12 +3,7 @@ add_library( koinos_wasi_api
              wasi_api.c
              ${HEADERS} )
 target_link_libraries( koinos_wasi_api koinos_api )
-# No target_include_directories for now
-# target_include_directories( koinos_wasi_api PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-message(STATUS ${CMAKE_BINARY_DIR})
-target_include_directories( koinos_wasi_api PUBLIC
-   ${CMAKE_BINARY_DIR}/../install/wasi-sdk/share/wasi-sysroot/include
-)
+target_include_directories( koinos_wasi_api PUBLIC ${CMAKE_SYSROOT}/include )
 
 install( TARGETS
    koinos_wasi_api
