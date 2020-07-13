@@ -4,8 +4,6 @@ add_library( koinos_api
              ${HEADERS} )
 target_include_directories( koinos_api PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include )
 
-add_dependencies( koinos_api koinos_wasi_sdk )
-
 install( TARGETS
    koinos_api
 
