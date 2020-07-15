@@ -2,8 +2,6 @@
 #include <koinos/pack/classes.hpp>
 #include <koinos/pack/system_call_ids.hpp>
 
-#define KOINOS_SYSTEM_MAX_RET_BUFFER 1 << 20
-
 namespace koinos::system {
 
 void print( const std::string& s );
