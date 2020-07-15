@@ -75,12 +75,12 @@ void set_contract_return( const variable_blob& ret )
    );
 }
 
-bool verify_block_header( const fixed_blob<65>& sig, const multihash_type& digest )
+bool verify_block_sig( const types::variable_blob& sig_data, const types::multihash_type& digest )
 {
-   auto args = pack::to_variable_blob( verify_block_header_args{ .sig = sig, .digest = digest } );
+   auto args = pack::to_variable_blob( verify_block_sig_args{ .sig_data = sig_data, .digest = digest } );
 
    invoke_system_call(
-      (uint32_t)system_call_id::verify_block_header,
+      (uint32_t)system_call_id::verify_block_sig,
       detail::return_buf.data(),
       detail::return_buf.size(),
       args.data(),
@@ -90,9 +90,30 @@ bool verify_block_header( const fixed_blob<65>& sig, const multihash_type& diges
    return pack::from_variable_blob< bool >( detail::return_buf );
 }
 
-void apply_block( const protocol::active_block_data& b )
+bool verify_merkle_root( const types::multihash_type& root, const std::vector< types::multihash_type >& hashes )
 {
-   auto args = pack::to_variable_blob( apply_block_args{ .block = b } );
+   auto args = pack::to_variable_blob( verify_merkle_root_args{ .root = root, .hashes = hashes } );
+
+   invoke_system_call(
+      (uint32_t)system_call_id::verify_merkle_root,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< bool >( detail::return_buf );
+}
+
+void apply_block( const std::vector< types::system::block_part >& p, bool enable_check_passive_data, bool enable_check_block_signature, bool enable_check_transaction_signatures )
+{
+   auto args = pack::to_variable_blob( apply_block_args
+   {
+      .block_parts = p,
+      .enable_check_passive_data = enable_check_passive_data,
+      .enable_check_block_signature = enable_check_block_signature,
+      .enable_check_transaction_signatures = enable_check_transaction_signatures
+   } );
 
    invoke_system_call(
       (uint32_t)system_call_id::apply_block,
@@ -103,9 +124,9 @@ void apply_block( const protocol::active_block_data& b )
    );
 }
 
-void apply_transaction( const protocol::transaction_type& t )
+void apply_transaction( const types::variable_blob& tx_blob )
 {
-   auto args = pack::to_variable_blob( apply_transaction_args{ .trx = t } );
+   auto args = pack::to_variable_blob( apply_transaction_args{ .tx_blob = tx_blob } );
 
    invoke_system_call(
       (uint32_t)system_call_id::apply_transaction,
