@@ -5,3 +5,6 @@
 	path = host/koinos-wasi-sdk
 	url = git@github.com:open-orchard/koinos-wasi-sdk.git
 	
+[submodule "libraries/boost"]
+	path = libraries/boost
+	url = https://github.com/boostorg/boost
