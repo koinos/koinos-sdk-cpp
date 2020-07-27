@@ -2,6 +2,15 @@ include(ExternalProject)
 
 find_package(Boost 1.57 REQUIRED)
 
+#add_custom_command(
+#   COMMAND cd ${CMAKE_SOURCE_DIR}/libraries/vendor/boost &&
+#      ./bootstrap.sh &&
+#      ./b2 headers &&
+#      mv ${CMAKE_SOURCE_DIR}/libraries/vendor/boost/boost ${CDT_ROOT_DIR}/include
+#
+#   OUTPUT ${CDT_ROOT_DIR}/include/boost
+#)
+
 ExternalProject_Add(
    KoinosWasmLibraries
    SOURCE_DIR "${CMAKE_SOURCE_DIR}/libraries"
