@@ -75,7 +75,7 @@ void set_contract_return( const variable_blob& ret )
    );
 }
 
-bool verify_block_sig( const types::variable_blob& sig_data, const types::multihash_type& digest )
+bool verify_block_sig( const types::variable_blob& sig_data, const types::multihash& digest )
 {
    auto args = pack::to_variable_blob( verify_block_sig_args{ .sig_data = sig_data, .digest = digest } );
 
@@ -90,7 +90,7 @@ bool verify_block_sig( const types::variable_blob& sig_data, const types::multih
    return pack::from_variable_blob< bool >( detail::return_buf );
 }
 
-bool verify_merkle_root( const types::multihash_type& root, const std::vector< types::multihash_type >& hashes )
+bool verify_merkle_root( const types::multihash& root, const std::vector< types::multihash >& hashes )
 {
    auto args = pack::to_variable_blob( verify_merkle_root_args{ .root = root, .hashes = hashes } );
 
@@ -105,11 +105,11 @@ bool verify_merkle_root( const types::multihash_type& root, const std::vector< t
    return pack::from_variable_blob< bool >( detail::return_buf );
 }
 
-void apply_block( const std::vector< types::system::block_part >& p, bool enable_check_passive_data, bool enable_check_block_signature, bool enable_check_transaction_signatures )
+void apply_block( const types::protocol::block& block, bool enable_check_passive_data, bool enable_check_block_signature, bool enable_check_transaction_signatures )
 {
    auto args = pack::to_variable_blob( apply_block_args
    {
-      .block_parts = p,
+      .block = block,
       .enable_check_passive_data = enable_check_passive_data,
       .enable_check_block_signature = enable_check_block_signature,
       .enable_check_transaction_signatures = enable_check_transaction_signatures
@@ -124,9 +124,9 @@ void apply_block( const std::vector< types::system::block_part >& p, bool enable
    );
 }
 
-void apply_transaction( const types::variable_blob& tx_blob )
+void apply_transaction( const types::opaque< types::protocol::transaction > trx )
 {
-   auto args = pack::to_variable_blob( apply_transaction_args{ .tx_blob = tx_blob } );
+   auto args = pack::to_variable_blob( apply_transaction_args{ .trx = trx } );
 
    invoke_system_call(
       (uint32_t)system_call_id::apply_transaction,
@@ -314,7 +314,7 @@ head_info get_head_info()
    return pack::from_variable_blob< head_info >( detail::return_buf );
 }
 
-multihash_type hash( uint64_t code, const variable_blob& obj, uint64_t size )
+multihash hash( uint64_t code, const variable_blob& obj, uint64_t size )
 {
    auto args = pack::to_variable_blob(
       hash_args
@@ -333,7 +333,7 @@ multihash_type hash( uint64_t code, const variable_blob& obj, uint64_t size )
       args.size()
    );
 
-   return pack::from_variable_blob< multihash_type >( detail::return_buf );
+   return pack::from_variable_blob< multihash >( detail::return_buf );
 }
 
 } // koinos::system
