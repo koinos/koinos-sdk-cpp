@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -x
 
 read -p "Enter desired installation directory name: " install_dir
 
