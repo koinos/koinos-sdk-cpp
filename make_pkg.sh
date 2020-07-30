@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -x
 
 rm -rf host/koinos-wasi-sdk/build
 
