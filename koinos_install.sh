@@ -1,10 +1,11 @@
 #!/bin/bash
 set -e
-set -x  
+set -x
+
 
 if [ "$1" != "-p" ]
   then
-    echo "Please provide a path by using the -p flag followed by the desired installation path"
+    echo "Please provide a path by using the -p flag followed by the desired installation path."
     exit 1
   else
     while getopts ':p:' OPTION; do
