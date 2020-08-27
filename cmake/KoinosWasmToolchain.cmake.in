@@ -21,6 +21,8 @@ set(CMAKE_C_FLAGS " -O3 ")
 set(CMAKE_CXX_FLAGS " -O3 ")
 set(CMAKE_ASM_FLAGS " -fnative -fasm ")
 
+add_compile_options( -I @CDT_ROOT_DIR@/include )
+
 set(CMAKE_LINKER "@CDT_ROOT_DIR@/wasi-sdk/bin/lld")
 set(CMAKE_SYSROOT "@CDT_ROOT_DIR@/wasi-sdk/share/wasi-sysroot")
 
