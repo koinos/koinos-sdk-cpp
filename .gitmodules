@@ -1,5 +1,5 @@
 [submodule "libraries/vendor/koinos-types"]
-	path = libraries/vendor/koinos-types
+	path = libraries/koinos_types
 	url = git@github.com:koinos/koinos-types.git
 [submodule "host/koinos-wasi-sdk"]
 	path = host/koinos-wasi-sdk
