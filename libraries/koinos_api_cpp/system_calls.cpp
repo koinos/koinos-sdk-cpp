@@ -25,60 +25,12 @@ void print( const std::string& s )
    );
 }
 
-uint32_t get_contract_args_size()
-{
-   variable_blob args;
-
-   invoke_system_call(
-      (uint32_t)system_call_id::get_contract_args_size,
-      detail::return_buf.data(),
-      detail::return_buf.size(),
-      args.data(),
-      args.size()
-   );
-
-   return pack::from_variable_blob< uint32_t >( detail::return_buf );
-}
-
-variable_blob get_contract_args()
-{
-   variable_blob args;
-
-   invoke_system_call(
-      (uint32_t)system_call_id::get_contract_args,
-      detail::return_buf.data(),
-      detail::return_buf.size(),
-      args.data(),
-      args.size()
-   );
-
-   return pack::from_variable_blob< get_contract_args_return >( detail::return_buf );
-}
-
-void set_contract_return( const variable_blob& value )
-{
-   auto args = pack::to_variable_blob(
-      set_contract_return_args
-      {
-         .value = value
-      }
-   );
-
-   invoke_system_call(
-      (uint32_t)system_call_id::set_contract_return,
-      detail::return_buf.data(),
-      detail::return_buf.size(),
-      args.data(),
-      args.size()
-   );
-}
-
 bool verify_block_signature( const variable_blob& sig, const multihash& digest )
 {
    auto args = pack::to_variable_blob( verify_block_signature_args{ .signature_data = sig, .digest = digest } );
 
    invoke_system_call(
-      (uint32_t)system_call_id::verify_block_header,
+      (uint32_t)system_call_id::verify_block_signature,
       detail::return_buf.data(),
       detail::return_buf.size(),
       args.data(),
@@ -88,13 +40,13 @@ bool verify_block_signature( const variable_blob& sig, const multihash& digest )
    return pack::from_variable_blob< bool >( detail::return_buf );
 }
 
-void apply_block( const protocol::block& b )
+void apply_block( const protocol::block& b, bool enable_check_passive_data, bool enable_check_block_signature, bool enable_check_transaction_signatures )
 {
    auto args = pack::to_variable_blob( apply_block_args{
       .block = b,
-      .check_passive_data = true,
-      .check_block_signature = true,
-      .check_transaction_signatures = true } );
+      .check_passive_data = enable_check_passive_data,
+      .check_block_signature = enable_check_block_signature,
+      .check_transaction_signatures = enable_check_transaction_signatures } );
 
    invoke_system_call(
       (uint32_t)system_call_id::apply_block,
@@ -280,6 +232,72 @@ variable_blob execute_contract( const contract_id_type& contract_id, uint32_t en
    return detail::return_buf;
 }
 
+uint32_t get_contract_args_size()
+{
+   variable_blob args;
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_contract_args_size,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< uint32_t >( detail::return_buf );
+}
+
+variable_blob get_contract_args()
+{
+   variable_blob args;
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_contract_args,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< get_contract_args_return >( detail::return_buf );
+}
+
+void set_contract_return( const variable_blob& value )
+{
+   auto args = pack::to_variable_blob(
+      set_contract_return_args
+      {
+         .value = value
+      }
+   );
+
+   invoke_system_call(
+      (uint32_t)system_call_id::set_contract_return,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+}
+
+void exit_contract( uint8_t exit_code )
+{
+   auto args = pack::to_variable_blob(
+      exit_contract_args
+      {
+         .exit_code = exit_code
+      }
+   );
+
+   invoke_system_call(
+      (uint32_t)system_call_id::exit_contract,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+}
+
 head_info get_head_info()
 {
    variable_blob args;
@@ -315,6 +333,144 @@ multihash hash( uint64_t code, const variable_blob& obj, uint64_t size )
    );
 
    return pack::from_variable_blob< multihash >( detail::return_buf );
+}
+
+bool verify_merkle_root( const multihash& root, const std::vector< multihash >& hashes )
+{
+   auto args = pack::to_variable_blob( verify_merkle_root_args{ .root = root, .hashes = hashes } );
+
+   invoke_system_call(
+      (uint32_t)system_call_id::verify_merkle_root,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< bool >( detail::return_buf );
+}
+
+account_type get_transaction_payer( const protocol::transaction& trx )
+{
+   auto args = pack::to_variable_blob(
+      get_transaction_payer_args
+      {
+         .transaction = trx
+      }
+   );
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_transaction_payer,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< account_type >( detail::return_buf );
+}
+
+uint128 get_max_account_resources( const account_type& account )
+{
+   variable_blob args = pack::to_variable_blob(
+      get_max_account_resources_args
+      {
+         .account = account
+      }
+   );
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_max_account_resources,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< uint128 >( detail::return_buf );
+}
+
+uint128 get_transaction_resource_limit( const protocol::transaction& trx )
+{
+   auto args = pack::to_variable_blob(
+      get_transaction_resource_limit_args
+      {
+         .transaction = trx
+      }
+   );
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_transaction_resource_limit,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< uint128 >( detail::return_buf );
+}
+
+block_height_type get_last_irreversible_block()
+{
+   variable_blob args;
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_transaction_payer,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< block_height_type >( detail::return_buf );
+}
+
+account_type get_caller()
+{
+   variable_blob args;
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_transaction_payer,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< account_type >( detail::return_buf );
+}
+
+void require_authority( const account_type& account )
+{
+   auto args = pack::to_variable_blob(
+      require_authority_args
+      {
+         .account = account
+      }
+   );
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_transaction_resource_limit,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+}
+
+variable_blob get_transaction_signature()
+{
+   variable_blob args;
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_transaction_payer,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< account_type >( detail::return_buf );
 }
 
 } // koinos::system
