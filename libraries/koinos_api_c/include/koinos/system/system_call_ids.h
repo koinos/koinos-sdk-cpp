@@ -23,8 +23,34 @@
 
 #define KOINOS_SYSTEM_CALL_ID_db_get_prev_object 0x9bd3767c
 
+#define KOINOS_SYSTEM_CALL_ID_execute_contract 0x98c12cfe
+
 #define KOINOS_SYSTEM_CALL_ID_get_contract_args_size 0x9b0d8fd9
 
 #define KOINOS_SYSTEM_CALL_ID_get_contract_args 0x9fbba198
 
+#define KOINOS_SYSTEM_CALL_ID_set_contract_return 0x9f49cdea
+
 #define KOINOS_SYSTEM_CALL_ID_exit_contract 0x98df75b0
+
+#define KOINOS_SYSTEM_CALL_ID_get_head_info 0x956fb22d
+
+#define KOINOS_SYSTEM_CALL_ID_hash 0x99770e04
+
+#define KOINOS_SYSTEM_CALL_ID_verify_block_signature 0x8fb9a59b
+
+#define KOINOS_SYSTEM_CALL_ID_verify_merkle_root 0x996e24b9
+
+#define KOINOS_SYSTEM_CALL_ID_get_transaction_payer 0x86a87bf5
+
+#define KOINOS_SYSTEM_CALL_ID_get_max_account_resources 0x842c6c81
+
+#define KOINOS_SYSTEM_CALL_ID_get_transaction_resource_limit 0x9940f685
+
+#define KOINOS_SYSTEM_CALL_ID_get_last_irreversible_block 0x953d2e37
+
+#define KOINOS_SYSTEM_CALL_ID_get_caller 0x94176c5f
+
+#define KOINOS_SYSTEM_CALL_ID_require_authority 0x9491e528
+
+#define KOINOS_SYSTEM_CALL_ID_get_transaction_signature 0x9dc3ec34

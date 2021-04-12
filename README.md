@@ -17,7 +17,7 @@ You can build the Koinos CDT from source. This builds a full llvm toolchain targ
 You will want to install the CDT. We'll refer to your installation location as `CDT_INSTALL_PATH`.
 
 ```
-git clone --recursive git@github.com:open-orchard/koinos-cdt.git`
+git clone --recursive git@github.com:koinos/koinos-cdt.git`
 cd koinos-cdt
 mkdir build
 cd build

@@ -11,6 +11,8 @@ endif()
 set(CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} -O3 -Wall ")
 set(CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -O3 -Wall ")
 
+find_package(Boost 1.57 REQUIRED)
+
 add_subdirectory( koinos_api_cpp )
 add_subdirectory( koinos_api_c )
 add_subdirectory( koinos_wasi_api )

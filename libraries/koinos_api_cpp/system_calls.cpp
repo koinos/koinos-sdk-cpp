@@ -6,9 +6,7 @@ extern "C" void invoke_system_call( uint32_t sid, char* ret_ptr, uint32_t ret_le
 
 namespace koinos::system {
 
-using namespace koinos::types;
-using namespace koinos::types::system;
-using namespace koinos::types::thunks;
+using namespace koinos::chain;
 
 namespace detail {
    static variable_blob return_buf( KOINOS_SYSTEM_MAX_RET_BUFFER );
@@ -54,15 +52,15 @@ variable_blob get_contract_args()
       args.size()
    );
 
-   return pack::from_variable_blob< get_contract_args_ret >( detail::return_buf );
+   return pack::from_variable_blob< get_contract_args_return >( detail::return_buf );
 }
 
-void set_contract_return( const variable_blob& ret )
+void set_contract_return( const variable_blob& value )
 {
    auto args = pack::to_variable_blob(
       set_contract_return_args
       {
-         .ret = ret
+         .value = value
       }
    );
 
@@ -75,9 +73,9 @@ void set_contract_return( const variable_blob& ret )
    );
 }
 
-bool verify_block_header( const fixed_blob<65>& sig, const multihash_type& digest )
+bool verify_block_signature( const variable_blob& sig, const multihash& digest )
 {
-   auto args = pack::to_variable_blob( verify_block_header_args{ .sig = sig, .digest = digest } );
+   auto args = pack::to_variable_blob( verify_block_signature_args{ .signature_data = sig, .digest = digest } );
 
    invoke_system_call(
       (uint32_t)system_call_id::verify_block_header,
@@ -90,9 +88,13 @@ bool verify_block_header( const fixed_blob<65>& sig, const multihash_type& diges
    return pack::from_variable_blob< bool >( detail::return_buf );
 }
 
-void apply_block( const protocol::active_block_data& b )
+void apply_block( const protocol::block& b )
 {
-   auto args = pack::to_variable_blob( apply_block_args{ .block = b } );
+   auto args = pack::to_variable_blob( apply_block_args{
+      .block = b,
+      .check_passive_data = true,
+      .check_block_signature = true,
+      .check_transaction_signatures = true } );
 
    invoke_system_call(
       (uint32_t)system_call_id::apply_block,
@@ -103,9 +105,9 @@ void apply_block( const protocol::active_block_data& b )
    );
 }
 
-void apply_transaction( const protocol::transaction_type& t )
+void apply_transaction( const protocol::transaction& t )
 {
-   auto args = pack::to_variable_blob( apply_transaction_args{ .trx = t } );
+   auto args = pack::to_variable_blob( apply_transaction_args{ .transaction = t } );
 
    invoke_system_call(
       (uint32_t)system_call_id::apply_transaction,
@@ -293,7 +295,7 @@ head_info get_head_info()
    return pack::from_variable_blob< head_info >( detail::return_buf );
 }
 
-multihash_type hash( uint64_t code, const variable_blob& obj, uint64_t size )
+multihash hash( uint64_t code, const variable_blob& obj, uint64_t size )
 {
    auto args = pack::to_variable_blob(
       hash_args
@@ -312,7 +314,7 @@ multihash_type hash( uint64_t code, const variable_blob& obj, uint64_t size )
       args.size()
    );
 
-   return pack::from_variable_blob< multihash_type >( detail::return_buf );
+   return pack::from_variable_blob< multihash >( detail::return_buf );
 }
 
 } // koinos::system

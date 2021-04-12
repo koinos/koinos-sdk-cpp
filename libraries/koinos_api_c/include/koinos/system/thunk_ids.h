@@ -23,8 +23,34 @@
 
 #define KOINOS_THUNK_ID_db_get_prev_object 0x8d57e8fd
 
+#define KOINOS_THUNK_ID_execute_contract 0x8a43fe83
+
 #define KOINOS_THUNK_ID_get_contract_args_size 0x83378e86
 
 #define KOINOS_THUNK_ID_get_contract_args 0x8e189d86
 
+#define KOINOS_THUNK_ID_set_contract_return 0x86b86275
+
 #define KOINOS_THUNK_ID_exit_contract 0x81f61f9f
+
+#define KOINOS_THUNK_ID_get_head_info 0x89df34c4
+
+#define KOINOS_THUNK_ID_hash 0x8aaaf547
+
+#define KOINOS_THUNK_ID_verify_block_signature 0x9d1c3c89
+
+#define KOINOS_THUNK_ID_verify_merkle_root 0x8ed9ddcb
+
+#define KOINOS_THUNK_ID_get_transaction_payer 0x9db35086
+
+#define KOINOS_THUNK_ID_get_max_account_resources 0x90f14f8d
+
+#define KOINOS_THUNK_ID_get_transaction_resource_limit 0x8bdf81a1
+
+#define KOINOS_THUNK_ID_get_last_irreversible_block 0x80c3b893
+
+#define KOINOS_THUNK_ID_get_caller 0x82312501
+
+#define KOINOS_THUNK_ID_require_authority 0x8a06717d
+
+#define KOINOS_THUNK_ID_get_transaction_signature 0x83441b23
