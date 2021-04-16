@@ -1,7 +1,4 @@
-
-build
-Testing
-libraries/pack/gen
+build/
 
 # Mac files
 .DS_Store

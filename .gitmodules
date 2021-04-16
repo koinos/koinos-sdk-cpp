@@ -1,9 +1,9 @@
 [submodule "libraries/vendor/koinos-types"]
-	path = libraries/vendor/koinos-types
-	url = git@github.com:open-orchard/koinos-types.git
+	path = libraries/koinos_types
+	url = git@github.com:koinos/koinos-types.git
 [submodule "host/koinos-wasi-sdk"]
 	path = host/koinos-wasi-sdk
-	url = git@github.com:open-orchard/koinos-wasi-sdk.git
+	url = https://github.com/koinos/koinos-wasi-sdk.git
 [submodule "host/boost"]
 	path = host/boost
 	url = https://github.com/boostorg/boost
