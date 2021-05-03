@@ -9,5 +9,5 @@ ExternalProject_Add(
    PATCH_COMMAND  ""
    TEST_COMMAND   ""
    BUILD_ALWAYS 1
-   DEPENDS koinos_wasi_sdk boost_headers
+   DEPENDS boost_headers
 )
