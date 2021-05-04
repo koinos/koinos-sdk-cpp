@@ -1,6 +1,6 @@
 [submodule "libraries/vendor/koinos-types"]
 	path = libraries/koinos_types
-	url = git@github.com:koinos/koinos-types.git
+	url = https://github.com/koinos/koinos-types.git
 [submodule "host/boost"]
 	path = host/boost
 	url = https://github.com/boostorg/boost
