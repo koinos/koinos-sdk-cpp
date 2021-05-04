@@ -9,9 +9,11 @@ set(CMAKE_CXX_COMPILER_WORKS 1)
 set(KOINOS_CDT_VERSION "@VERSION_FULL@")
 set(KOINOS_SDK_VERSION "@VERSION_FULL@")
 
-set(CMAKE_C_COMPILER "@CDT_ROOT_DIR@/wasi-sdk/bin/clang")
-set(CMAKE_CXX_COMPILER "@CDT_ROOT_DIR@/wasi-sdk/bin/clang++")
-set(CMAKE_ASM_COMPILER "@CDT_ROOT_DIR@/wasi-sdk/bin/clang")
+set(KOINOS_WASI_SDK_ROOT "$ENV{KOINOS_WASI_SDK_ROOT}")
+
+set(CMAKE_C_COMPILER "${KOINOS_WASI_SDK_ROOT}/wasi-sdk/bin/clang")
+set(CMAKE_CXX_COMPILER "${KOINOS_WASI_SDK_ROOT}/wasi-sdk/bin/clang++")
+set(CMAKE_ASM_COMPILER "${KOINOS_WASI_SDK_ROOT}/wasi-sdk/bin/clang")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,8 +25,8 @@ set(CMAKE_ASM_FLAGS " -fnative -fasm ")
 
 add_compile_options( -I @CDT_ROOT_DIR@/include )
 
-set(CMAKE_LINKER "@CDT_ROOT_DIR@/wasi-sdk/bin/lld")
-set(CMAKE_SYSROOT "@CDT_ROOT_DIR@/wasi-sdk/share/wasi-sysroot")
+set(CMAKE_LINKER "${KOINOS_WASI_SDK_ROOT}/wasi-sdk/bin/lld")
+set(CMAKE_SYSROOT "${KOINOS_WASI_SDK_ROOT}/wasi-sdk/share/wasi-sysroot")
 
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
