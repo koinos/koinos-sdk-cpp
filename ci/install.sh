@@ -3,8 +3,8 @@
 set -e
 set -x
 
-sudo curl -L https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-12/wasi-sdk-12.0-linux.tar.gz -o wasi-sdk-12.0.tar.gz
-sudo tar -xvzf wasi-sdk-12.0.tar.gz -C /opt
+curl -L https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-12/wasi-sdk-12.0-linux.tar.gz -o wasi-sdk-12.0.tar.gz
+tar -xvzf wasi-sdk-12.0.tar.gz -C $HOME/opt
 
 pip3 install --user dataclasses_json Jinja2 importlib_resources pluginbase gitpython
 
