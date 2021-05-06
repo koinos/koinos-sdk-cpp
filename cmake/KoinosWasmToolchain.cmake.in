@@ -29,9 +29,18 @@ set(CMAKE_SYSROOT ${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -Os")
 
-add_compile_options(-I${KOINOS_CDT_ROOT}/include)
-add_link_options(--no-entry -L${KOINOS_CDT_ROOT}/lib)
+add_compile_options(
+  -I${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot/include
+  -I${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot/include/c++/v1
+  -I${KOINOS_CDT_ROOT}/include)
+
+add_link_options(
+  --no-entry
+  --allow-undefined
+  -L${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot/lib/wasm32-wasi
+  -L${KOINOS_CDT_ROOT}/lib)
 
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
