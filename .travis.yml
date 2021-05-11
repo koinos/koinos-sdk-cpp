@@ -1,0 +1,32 @@
+language: c++
+
+cache:
+  pip: true
+
+addons:
+  apt:
+    packages:
+      - python3
+      - python3-pip
+      - python3-setuptools
+    update: true
+
+jobs:
+  include:
+    - os: linux
+      dist: focal
+
+install:
+  - ci/install.sh
+
+script:
+  - ci/build.sh && ci/test.sh
+
+after_success:
+  - ci/after_success.sh
+
+notifications:
+  slack:
+    secure: jA1UWnXRjaqTxqPDNhQhZXAk7mC7xLAuI6NLSFPh+ybYv+goM1wefZp6IkdX5u1EHB0UCF4jbmczQxjVEhvBCBx8sy9DmxFICfjDtbsEnHksRsROpKPePF4DTwZMsjKn5+oPF7fBHr0ShzpdcZ7rmbFWQnfXI6Bin6znDV6xd8XNV5jI26FAaL0eIQd/+bjKHpDCDRzu2MJY44+Awpf0tbdwfWqj9EZ9SHl1wMsyvp1BSOlOtErEiv0EUWjmM1VTE2nPYzn2N7YoRv6nwtTpqJ+Y1xgm0mJ0DtV39xyo4+AhyxJAoJqkjkrP5AIepUyz+1o+m/4j/98FjfTi3JugMOzWAJqiAyWLVJG74W7Zs3h+M+W+eRSDhMfybgwEWz2+IFrP0Re9C7XI+KGLLAZ734lzESNKs6grisIRnk226YawffeDMJ/zT1uyWs3VIw9TuXI/0SnSnE+Gno0Xbho37jTT1lqRHsrMRzbC44rF+dBqMJE+m70naHj9MrR+0fHNGct19X73nDadIJeJNlMdV5OgddxLvCZL7RsD8c1MDQDWrASfConS6P/TPVsYeLxia3uSl8NoXwSRX7+j91bQnI0YFzpgKyJdYE2WtNJULgqOTftKr+7orzMqMqjBNdlRhsB7Yh6pepKWbLX1N1N3UoDhtia9JoWz04vQcq2l42w=
+    on_success: never
+

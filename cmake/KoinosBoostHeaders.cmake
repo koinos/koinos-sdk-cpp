@@ -13,4 +13,4 @@ add_custom_command(
    OUTPUT ${CMAKE_BINARY_DIR}/boost_headers.BUILT
 )
 
-install( DIRECTORY ${CMAKE_BINARY_DIR}/include/ DESTINATION include )
+install(DIRECTORY ${CMAKE_BINARY_DIR}/include/ DESTINATION include)
