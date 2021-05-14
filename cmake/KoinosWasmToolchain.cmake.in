@@ -29,9 +29,10 @@ set(CMAKE_SYSROOT ${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 add_compile_options(
+  -flto
   -I${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot/include
   -I${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot/include/c++/v1
   -I${KOINOS_CDT_ROOT}/include)
@@ -39,6 +40,7 @@ add_compile_options(
 add_link_options(
   --no-entry
   --allow-undefined
+  --strip-all
   -m wasm32
   ${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot/lib/wasm32-wasi/crt1.o
   -L${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot/lib/wasm32-wasi
