@@ -163,7 +163,7 @@ variable_blob db_get_object( const uint256& space, const uint256& key, int32_t o
       args.size()
    );
 
-   return detail::return_buf;
+   return pack::from_variable_blob< variable_blob >( return_buf );
 }
 
 variable_blob db_get_next_object( const uint256& space, const uint256& key, int32_t object_size_hint )
@@ -230,6 +230,21 @@ variable_blob execute_contract( const contract_id_type& contract_id, uint32_t en
    );
 
    return detail::return_buf;
+}
+
+uint32_t get_entry_point()
+{
+   variable_blob args;
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_entry_point,
+      return_buffer.data(),
+      return_buffer.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< uint32_t >( return_buffer );
 }
 
 uint32_t get_contract_args_size()
