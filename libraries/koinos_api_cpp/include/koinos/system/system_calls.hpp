@@ -337,7 +337,7 @@ inline T get_contract_args()
    return pack::from_variable_blob< T >( get_contract_args() );
 }
 
-inline void set_contract_return( const variable_blob& ret )
+inline void set_contract_return_vb( const variable_blob& ret )
 {
    auto args = pack::to_variable_blob(
       set_contract_return_args
@@ -350,15 +350,20 @@ inline void set_contract_return( const variable_blob& ret )
       (uint32_t)system_call_id::set_contract_return,
       detail::return_buf.data(),
       detail::return_buf.size(),
-      args.data(),
-      args.size()
+      (char*)( ret.data() ),
+      ret.size()
    );
+}
+
+inline void set_contract_return( const variable_blob& ret )
+{
+   set_contract_return_vb( ret );
 }
 
 template< typename T >
 inline void set_contract_return( T&& t )
 {
-   set_contract_return( pack::to_variable_blob( t ) );
+   set_contract_return_vb( pack::to_variable_blob( t ) );
 }
 
 inline void exit_contract( uint8_t exit_code )
