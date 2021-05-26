@@ -484,7 +484,7 @@ inline block_height_type get_last_irreversible_block()
    variable_blob args;
 
    invoke_system_call(
-      (uint32_t)system_call_id::get_transaction_payer,
+      (uint32_t)system_call_id::get_last_irreversible_block,
       detail::return_buf.data(),
       detail::return_buf.size(),
       args.data(),
@@ -494,19 +494,19 @@ inline block_height_type get_last_irreversible_block()
    return pack::from_variable_blob< block_height_type >( detail::return_buf );
 }
 
-inline account_type get_caller()
+inline get_caller_return get_caller()
 {
    variable_blob args;
 
    invoke_system_call(
-      (uint32_t)system_call_id::get_transaction_payer,
+      (uint32_t)system_call_id::get_caller,
       detail::return_buf.data(),
       detail::return_buf.size(),
       args.data(),
       args.size()
    );
 
-   return pack::from_variable_blob< account_type >( detail::return_buf );
+   return pack::from_variable_blob< get_caller_return >( detail::return_buf );
 }
 
 inline void require_authority( const account_type& account )
@@ -519,7 +519,7 @@ inline void require_authority( const account_type& account )
    );
 
    invoke_system_call(
-      (uint32_t)system_call_id::get_transaction_resource_limit,
+      (uint32_t)system_call_id::require_authority,
       detail::return_buf.data(),
       detail::return_buf.size(),
       args.data(),
@@ -532,7 +532,7 @@ inline variable_blob get_transaction_signature()
    variable_blob args;
 
    invoke_system_call(
-      (uint32_t)system_call_id::get_transaction_payer,
+      (uint32_t)system_call_id::get_transaction_signature,
       detail::return_buf.data(),
       detail::return_buf.size(),
       args.data(),
