@@ -350,8 +350,8 @@ inline void set_contract_return_vb( const variable_blob& ret )
       (uint32_t)system_call_id::set_contract_return,
       detail::return_buf.data(),
       detail::return_buf.size(),
-      (char*)( ret.data() ),
-      ret.size()
+      args.data(),
+      args.size()
    );
 }
 
@@ -595,5 +595,20 @@ inline contract_id_type get_contract_id()
 
    return pack::from_variable_blob< contract_id_type >( detail::return_buf );
 }
+
+inline timestamp_type get_head_block_time()
+{
+   variable_blob args;
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_head_block_time,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< timestamp_type >( detail::return_buf );
+};
 
 } // koinos::system
