@@ -1,5 +1,4 @@
-file(GLOB HEADERS "include/koinos/*.hpp")
-file(GLOB HEADERS "include/koinos/system/*.hpp")
+file(GLOB HEADERS "include/koinos/*.hpp" "include/koinos/system/*.hpp")
 add_library( koinos_api_cpp
              koinos_api_cpp.cpp
              ${HEADERS} )
@@ -13,7 +12,6 @@ install( TARGETS
    LIBRARY DESTINATION lib
    ARCHIVE DESTINATION lib
 )
-#install( FILES ${HEADERS} DESTINATION "include/koinos" )
 
 install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include"
          DESTINATION "./"
