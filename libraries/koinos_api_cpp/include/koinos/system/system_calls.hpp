@@ -1,3 +1,4 @@
+#pragma once
 #include <koinos/pack/rt/binary.hpp>
 #include <koinos/pack/classes.hpp>
 #include <koinos/pack/system_call_ids.hpp>
@@ -330,7 +331,13 @@ inline variable_blob get_contract_args()
    return pack::from_variable_blob< get_contract_args_return >( detail::return_buf );
 }
 
-inline void set_contract_return( const variable_blob& ret )
+template< typename T >
+inline T get_contract_args()
+{
+   return pack::from_variable_blob< T >( get_contract_args() );
+}
+
+inline void set_contract_return_vb( const variable_blob& ret )
 {
    auto args = pack::to_variable_blob(
       set_contract_return_args
@@ -346,6 +353,17 @@ inline void set_contract_return( const variable_blob& ret )
       args.data(),
       args.size()
    );
+}
+
+inline void set_contract_return( const variable_blob& ret )
+{
+   set_contract_return_vb( ret );
+}
+
+template< typename T >
+inline void set_contract_return( T&& t )
+{
+   set_contract_return_vb( pack::to_variable_blob( t ) );
 }
 
 inline void exit_contract( uint8_t exit_code )
@@ -401,6 +419,27 @@ inline multihash hash( uint64_t code, const variable_blob& obj, uint64_t size = 
    );
 
    return pack::from_variable_blob< multihash >( detail::return_buf );
+}
+
+inline account_type recover_public_key( const variable_blob& signature_data, const multihash& digest )
+{
+   auto args = pack::to_variable_blob(
+      recover_public_key_args
+      {
+         .signature_data = signature_data,
+         .digest         = digest,
+      }
+   );
+
+   invoke_system_call(
+      (uint32_t)system_call_id::recover_public_key,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< account_type >( detail::return_buf );
 }
 
 inline bool verify_merkle_root( const multihash& root, const std::vector< multihash >& hashes )
@@ -541,5 +580,35 @@ inline variable_blob get_transaction_signature()
 
    return pack::from_variable_blob< account_type >( detail::return_buf );
 }
+
+inline contract_id_type get_contract_id()
+{
+   variable_blob args;
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_contract_id,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< contract_id_type >( detail::return_buf );
+}
+
+inline timestamp_type get_head_block_time()
+{
+   variable_blob args;
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_head_block_time,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< timestamp_type >( detail::return_buf );
+};
 
 } // koinos::system
