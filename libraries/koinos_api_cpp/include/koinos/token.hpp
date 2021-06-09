@@ -18,15 +18,15 @@ enum entries : uint32_t
 
 struct transfer_args
 {
-   chain::account_type from;
-   chain::account_type to;
-   uint64_t            value;
+   protocol::account_type from;
+   protocol::account_type to;
+   uint64_t               value;
 };
 
 struct mint_args
 {
-   chain::account_type to;
-   uint64_t            value;
+   protocol::account_type to;
+   uint64_t               value;
 };
 
 } // detail
@@ -41,7 +41,7 @@ class token
          _contract_address( contract_address )
       {}
 
-      inline token( const chain::account_type& contract_address ) :
+      inline token( const protocol::account_type& contract_address ) :
          _contract_address( pack::from_variable_blob< contract_id_type >( contract_address ) )
       {}
 
@@ -93,7 +93,7 @@ class token
          );
       }
 
-      inline uint64_t balance_of( const chain::account_type& owner )
+      inline uint64_t balance_of( const protocol::account_type& owner )
       {
          return pack::from_variable_blob< uint64_t >(
             system::execute_contract(
@@ -104,7 +104,7 @@ class token
          );
       }
 
-      inline bool transfer( const chain::account_type& from, const chain::account_type& to, const uint64_t& value )
+      inline bool transfer( const protocol::account_type& from, const protocol::account_type& to, const uint64_t& value )
       {
          return pack::from_variable_blob< bool >(
             system::execute_contract(
@@ -119,7 +119,7 @@ class token
          );
       }
 
-      inline bool mint( const chain::account_type& to, const uint64_t& value )
+      inline bool mint( const protocol::account_type& to, const uint64_t& value )
       {
          return pack::from_variable_blob< bool >(
             system::execute_contract(
