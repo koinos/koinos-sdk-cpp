@@ -31,9 +31,9 @@ inline void print( const std::string& s )
 inline bool verify_block_signature( const multihash& digest, opaque< protocol::active_block_data >& active_data, const variable_blob& sig )
 {
    auto args = pack::to_variable_blob( verify_block_signature_args {
-      .digest = digest
+      .digest = digest,
       .active_data = active_data,
-      .signature_data = sig,
+      .signature_data = sig
    } );
 
    invoke_system_call(
