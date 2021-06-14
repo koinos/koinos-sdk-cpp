@@ -365,7 +365,7 @@ bool verify_merkle_root( const multihash& root, const std::vector< multihash >& 
    return pack::from_variable_blob< bool >( detail::return_buf );
 }
 
-account_type get_transaction_payer( const protocol::transaction& trx )
+protocol::account_type get_transaction_payer( const protocol::transaction& trx )
 {
    auto args = pack::to_variable_blob(
       get_transaction_payer_args
@@ -382,10 +382,10 @@ account_type get_transaction_payer( const protocol::transaction& trx )
       args.size()
    );
 
-   return pack::from_variable_blob< account_type >( detail::return_buf );
+   return pack::from_variable_blob< protocol::account_type >( detail::return_buf );
 }
 
-uint128 get_max_account_resources( const account_type& account )
+uint128 get_max_account_resources( const protocol::account_type& account )
 {
    variable_blob args = pack::to_variable_blob(
       get_max_account_resources_args
@@ -440,7 +440,7 @@ block_height_type get_last_irreversible_block()
    return pack::from_variable_blob< block_height_type >( detail::return_buf );
 }
 
-account_type get_caller()
+protocol::account_type get_caller()
 {
    variable_blob args;
 
@@ -452,10 +452,10 @@ account_type get_caller()
       args.size()
    );
 
-   return pack::from_variable_blob< account_type >( detail::return_buf );
+   return pack::from_variable_blob< protocol::account_type >( detail::return_buf );
 }
 
-void require_authority( const account_type& account )
+void require_authority( const protocol::account_type& account )
 {
    auto args = pack::to_variable_blob(
       require_authority_args
@@ -485,7 +485,7 @@ variable_blob get_transaction_signature()
       args.size()
    );
 
-   return pack::from_variable_blob< account_type >( detail::return_buf );
+   return pack::from_variable_blob< protocol::account_type >( detail::return_buf );
 }
 
 } // koinos::system

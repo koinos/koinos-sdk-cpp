@@ -14,7 +14,6 @@ namespace detail {
 }
 
 using namespace koinos::chain;
-using chain::account_type;
 
 inline void print( const std::string& s )
 {
@@ -29,9 +28,13 @@ inline void print( const std::string& s )
    );
 }
 
-inline bool verify_block_signature( const variable_blob& sig, const multihash& digest )
+inline bool verify_block_signature( const multihash& digest, opaque< protocol::active_block_data >& active_data, const variable_blob& sig )
 {
-   auto args = pack::to_variable_blob( verify_block_signature_args{ .signature_data = sig, .digest = digest } );
+   auto args = pack::to_variable_blob( verify_block_signature_args {
+      .digest = digest,
+      .active_data = active_data,
+      .signature_data = sig
+   } );
 
    invoke_system_call(
       (uint32_t)system_call_id::verify_block_signature,
@@ -421,7 +424,7 @@ inline multihash hash( uint64_t code, const variable_blob& obj, uint64_t size = 
    return pack::from_variable_blob< multihash >( detail::return_buf );
 }
 
-inline account_type recover_public_key( const variable_blob& signature_data, const multihash& digest )
+inline protocol::account_type recover_public_key( const variable_blob& signature_data, const multihash& digest )
 {
    auto args = pack::to_variable_blob(
       recover_public_key_args
@@ -439,7 +442,7 @@ inline account_type recover_public_key( const variable_blob& signature_data, con
       args.size()
    );
 
-   return pack::from_variable_blob< account_type >( detail::return_buf );
+   return pack::from_variable_blob< protocol::account_type >( detail::return_buf );
 }
 
 inline bool verify_merkle_root( const multihash& root, const std::vector< multihash >& hashes )
@@ -458,7 +461,7 @@ inline bool verify_merkle_root( const multihash& root, const std::vector< multih
 }
 
 
-inline account_type get_transaction_payer( const protocol::transaction& trx )
+inline protocol::account_type get_transaction_payer( const protocol::transaction& trx )
 {
    auto args = pack::to_variable_blob(
       get_transaction_payer_args
@@ -475,10 +478,10 @@ inline account_type get_transaction_payer( const protocol::transaction& trx )
       args.size()
    );
 
-   return pack::from_variable_blob< account_type >( detail::return_buf );
+   return pack::from_variable_blob< protocol::account_type >( detail::return_buf );
 }
 
-inline uint128 get_max_account_resources( const account_type& account )
+inline uint128 get_max_account_resources( const protocol::account_type& account )
 {
    variable_blob args = pack::to_variable_blob(
       get_max_account_resources_args
@@ -548,7 +551,7 @@ inline get_caller_return get_caller()
    return pack::from_variable_blob< get_caller_return >( detail::return_buf );
 }
 
-inline void require_authority( const account_type& account )
+inline void require_authority( const protocol::account_type& account )
 {
    auto args = pack::to_variable_blob(
       require_authority_args
@@ -578,7 +581,7 @@ inline variable_blob get_transaction_signature()
       args.size()
    );
 
-   return pack::from_variable_blob< account_type >( detail::return_buf );
+   return pack::from_variable_blob< protocol::account_type >( detail::return_buf );
 }
 
 inline contract_id_type get_contract_id()
