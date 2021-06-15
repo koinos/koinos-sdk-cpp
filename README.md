@@ -5,66 +5,36 @@
 - `koinos_api_cpp` : C++ library for invoking Koinos API syscall with C++ syntax
 - `koinos_wasi_api` : C library for translating WASI syscalls to Koinos API syscalls
 - `koinos-types` : C++ serialization library for Koinos
-- `libc++` : Full C++ standard library for developing Koins smart contracts
 - `boost` : Header only Boost libraries
 
 ## Installation
 
-### Build from source
+You first need to download wasi-sdk. We recommend the pre-compiled release for your system. Building contracts
+has been tested on wasi sdk 12.0. Release binaries can be found on their git repo. https://github.com/WebAssembly/wasi-sdk/releases/tag/wasi-sdk-12
 
-You can build the Koinos CDT from source. This builds a full llvm toolchain targetting WASM and Koinos. As such, it takes some time.
+Download and extract the wasi sdk to a location of your choosing. We recommend `$HOME/opt/wasi-sdk`. Save this
+location in an env variable, `KOINOS_WASI_SDK_ROOT`.
 
-You will want to install the CDT. We'll refer to your installation location as `CDT_INSTALL_PATH`.
+Set `KOINOS_CDT_ROOT` to the location you want to install the CDT. We recommend `$HOME/opt/koinos-cdt`.
+
+The CDT builds using cmake.
+
+To build and install run the following commands:
 
 ```
-git clone --recursive git@github.com:koinos/koinos-cdt.git`
-cd koinos-cdt
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTAL_PREFIX=$CDT_INSTALL_PATH ..
-make -j
-make install
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$KOINOS_CDT_ROOT ..
+make -j install
 ```
-
-Congrats, you now have the Koinos-CDT installed. LLVM executables can be found in `$CDT_INSTALL_PATH/wasi-sdk/bin`.
-All other headers can be found in `$CDT_INSTALL_PATH/include`.
-
-### Script Installation
-
-Download the packaged CDT for your system from the latest releaese on GitHub.
-
-Extract the archive to your installation directory.
-
-`mkdir -p $CDT_INSTALL_PATH && tar xvf koinos-cdt.tar.gz -C $CDT_INSTALL_PATH`
 
 ## Using the CDT
 
-This simple scipt can compiler a single source contract.
+You can now use the CDT to build C++ smart contracts using the cmake toolchain file.
 
-```
-#!/bin/bash
+Create your cmake project like normal. You will need to set your `target_link_libraries` to `koinos_api koinos_api_cpp koinos_wasi_api c c++ c++abi clang_rt.builtins-wasm32`.
 
-set -e
-set -x
+Invoke your cmake project with the following command:
+`cmake -DCMAKE_TOOLCHAIN_FILE=${KOINOS_CDT_ROOT}/cmake/koinos-wasm-toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..`
 
-"$CDT_INSTALL_PATH/wasi-sdk/bin/clang++" \
-   \
-   -v \
-   --sysroot="$CDT_INSTALL_PATH/wasi-sdk/share/wasi-sysroot" \
-   --target=wasm32-wasi \
-   -L$CDT_INSTALL_PATH/lib \
-   -I$CDT_INSTALL_PATH/include \
-   -lkoinos_api \
-   -lkoinos_api_cpp \
-   -lkoinos_wasi_api \
-   -Wl,--allow-undefined \
-   \
-   -std=c++17 \
-   \
-   -o $2 \
-   $1
-```
-
-Invocation is as simple as:
-
-`build_koinos_contract.sh my_contract.cpp my_contract.wasm`
+You will have `.wasm` binaries in your build directory which will be valid Koinos smart contracts, ready to upload to Koinos.
