@@ -1,5 +1,8 @@
 #include <koinos/system/system_calls.hpp>
 
+#include <koinos/pack/rt/binary.hpp>
+#include <koinos/pack/system_call_ids.hpp>
+
 #define KOINOS_SYSTEM_MAX_RET_BUFFER 1 << 20
 
 extern "C" void invoke_system_call( uint32_t sid, char* ret_ptr, uint32_t ret_len, char* arg_ptr, uint32_t arg_len );
@@ -25,9 +28,13 @@ void print( const std::string& s )
    );
 }
 
-bool verify_block_signature( const variable_blob& sig, const multihash& digest )
+bool verify_block_signature( const multihash& digest, opaque< protocol::active_block_data >& active_data, const variable_blob& sig )
 {
-   auto args = pack::to_variable_blob( verify_block_signature_args{ .signature_data = sig, .digest = digest } );
+   auto args = pack::to_variable_blob( verify_block_signature_args {
+      .digest = digest,
+      .active_data = active_data,
+      .signature_data = sig
+   } );
 
    invoke_system_call(
       (uint32_t)system_call_id::verify_block_signature,
@@ -96,9 +103,9 @@ void apply_upload_contract_operation( const protocol::create_system_contract_ope
    );
 }
 
-void apply_execute_contract_operation( const protocol::contract_call_operation& o )
+void apply_execute_contract_operation( const protocol::call_contract_operation& op )
 {
-   auto args = pack::to_variable_blob( apply_execute_contract_operation_args{ .op = o } );
+   auto args = pack::to_variable_blob( apply_execute_contract_operation_args{ .op = op } );
 
    invoke_system_call(
       (uint32_t)system_call_id::apply_execute_contract_operation,
@@ -109,9 +116,9 @@ void apply_execute_contract_operation( const protocol::contract_call_operation& 
    );
 }
 
-void apply_set_system_call_operation( const protocol::set_system_call_operation& o )
+void apply_set_system_call_operation( const protocol::set_system_call_operation& op )
 {
-   auto args = pack::to_variable_blob( apply_set_system_call_operation_args{ .op = o } );
+   auto args = pack::to_variable_blob( apply_set_system_call_operation_args{ .op = op } );
 
    invoke_system_call(
       (uint32_t)system_call_id::apply_set_system_call_operation,
@@ -121,6 +128,8 @@ void apply_set_system_call_operation( const protocol::set_system_call_operation&
       args.size()
    );
 }
+
+bool db_put_object( const uint256& space, const uint256& key, const variable_blob& obj );
 
 bool db_put_object( const uint256& space, const uint256& key, const variable_blob& obj )
 {
@@ -144,8 +153,9 @@ bool db_put_object( const uint256& space, const uint256& key, const variable_blo
    return pack::from_variable_blob< bool >( detail::return_buf );
 }
 
-variable_blob db_get_object( const uint256& space, const uint256& key, int32_t object_size_hint )
-{
+variable_blob db_get_object( const uint256& space, const uint256& key, int32_t object_size_hint );
+
+variable_blob db_get_object( const uint256& space, const uint256& key, int32_t object_size_hint ){
    auto args = pack::to_variable_blob(
       db_get_object_args
       {
@@ -155,6 +165,9 @@ variable_blob db_get_object( const uint256& space, const uint256& key, int32_t o
       }
    );
 
+   // Read data is returned as a variable blob, which will change this value if a value is returned.
+   detail::return_buf[0] = uint8_t(0);
+
    invoke_system_call(
       (uint32_t)system_call_id::db_get_object,
       detail::return_buf.data(),
@@ -163,7 +176,7 @@ variable_blob db_get_object( const uint256& space, const uint256& key, int32_t o
       args.size()
    );
 
-   return pack::from_variable_blob< variable_blob >( return_buf );
+   return pack::from_variable_blob< variable_blob >( detail::return_buf );
 }
 
 variable_blob db_get_next_object( const uint256& space, const uint256& key, int32_t object_size_hint )
@@ -238,13 +251,13 @@ uint32_t get_entry_point()
 
    invoke_system_call(
       (uint32_t)system_call_id::get_entry_point,
-      return_buffer.data(),
-      return_buffer.size(),
+      detail::return_buf.data(),
+      detail::return_buf.size(),
       args.data(),
       args.size()
    );
 
-   return pack::from_variable_blob< uint32_t >( return_buffer );
+   return pack::from_variable_blob< uint32_t >( detail::return_buf );
 }
 
 uint32_t get_contract_args_size()
@@ -277,12 +290,12 @@ variable_blob get_contract_args()
    return pack::from_variable_blob< get_contract_args_return >( detail::return_buf );
 }
 
-void set_contract_return( const variable_blob& value )
+void set_contract_return_vb( const variable_blob& ret )
 {
    auto args = pack::to_variable_blob(
       set_contract_return_args
       {
-         .value = value
+         .value = ret
       }
    );
 
@@ -293,6 +306,11 @@ void set_contract_return( const variable_blob& value )
       args.data(),
       args.size()
    );
+}
+
+void set_contract_return( const variable_blob& ret )
+{
+   set_contract_return_vb( ret );
 }
 
 void exit_contract( uint8_t exit_code )
@@ -313,7 +331,7 @@ void exit_contract( uint8_t exit_code )
    );
 }
 
-head_info get_head_info()
+chain::head_info get_head_info()
 {
    variable_blob args;
 
@@ -350,6 +368,27 @@ multihash hash( uint64_t code, const variable_blob& obj, uint64_t size )
    return pack::from_variable_blob< multihash >( detail::return_buf );
 }
 
+protocol::account_type recover_public_key( const variable_blob& signature_data, const multihash& digest )
+{
+   auto args = pack::to_variable_blob(
+      recover_public_key_args
+      {
+         .signature_data = signature_data,
+         .digest         = digest,
+      }
+   );
+
+   invoke_system_call(
+      (uint32_t)system_call_id::recover_public_key,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< protocol::account_type >( detail::return_buf );
+}
+
 bool verify_merkle_root( const multihash& root, const std::vector< multihash >& hashes )
 {
    auto args = pack::to_variable_blob( verify_merkle_root_args{ .root = root, .hashes = hashes } );
@@ -364,6 +403,7 @@ bool verify_merkle_root( const multihash& root, const std::vector< multihash >& 
 
    return pack::from_variable_blob< bool >( detail::return_buf );
 }
+
 
 protocol::account_type get_transaction_payer( const protocol::transaction& trx )
 {
@@ -430,7 +470,7 @@ block_height_type get_last_irreversible_block()
    variable_blob args;
 
    invoke_system_call(
-      (uint32_t)system_call_id::get_transaction_payer,
+      (uint32_t)system_call_id::get_last_irreversible_block,
       detail::return_buf.data(),
       detail::return_buf.size(),
       args.data(),
@@ -440,19 +480,19 @@ block_height_type get_last_irreversible_block()
    return pack::from_variable_blob< block_height_type >( detail::return_buf );
 }
 
-protocol::account_type get_caller()
+get_caller_return get_caller()
 {
    variable_blob args;
 
    invoke_system_call(
-      (uint32_t)system_call_id::get_transaction_payer,
+      (uint32_t)system_call_id::get_caller,
       detail::return_buf.data(),
       detail::return_buf.size(),
       args.data(),
       args.size()
    );
 
-   return pack::from_variable_blob< protocol::account_type >( detail::return_buf );
+   return pack::from_variable_blob< get_caller_return >( detail::return_buf );
 }
 
 void require_authority( const protocol::account_type& account )
@@ -465,7 +505,7 @@ void require_authority( const protocol::account_type& account )
    );
 
    invoke_system_call(
-      (uint32_t)system_call_id::get_transaction_resource_limit,
+      (uint32_t)system_call_id::require_authority,
       detail::return_buf.data(),
       detail::return_buf.size(),
       args.data(),
@@ -478,7 +518,7 @@ variable_blob get_transaction_signature()
    variable_blob args;
 
    invoke_system_call(
-      (uint32_t)system_call_id::get_transaction_payer,
+      (uint32_t)system_call_id::get_transaction_signature,
       detail::return_buf.data(),
       detail::return_buf.size(),
       args.data(),
@@ -487,5 +527,35 @@ variable_blob get_transaction_signature()
 
    return pack::from_variable_blob< protocol::account_type >( detail::return_buf );
 }
+
+contract_id_type get_contract_id()
+{
+   variable_blob args;
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_contract_id,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< contract_id_type >( detail::return_buf );
+}
+
+timestamp_type get_head_block_time()
+{
+   variable_blob args;
+
+   invoke_system_call(
+      (uint32_t)system_call_id::get_head_block_time,
+      detail::return_buf.data(),
+      detail::return_buf.size(),
+      args.data(),
+      args.size()
+   );
+
+   return pack::from_variable_blob< timestamp_type >( detail::return_buf );
+};
 
 } // koinos::system
