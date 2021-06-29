@@ -129,8 +129,6 @@ void apply_set_system_call_operation( const protocol::set_system_call_operation&
    );
 }
 
-bool db_put_object( const uint256& space, const uint256& key, const variable_blob& obj );
-
 bool db_put_object( const uint256& space, const uint256& key, const variable_blob& obj )
 {
    auto args = pack::to_variable_blob(
@@ -152,8 +150,6 @@ bool db_put_object( const uint256& space, const uint256& key, const variable_blo
 
    return pack::from_variable_blob< bool >( detail::return_buf );
 }
-
-variable_blob db_get_object( const uint256& space, const uint256& key, int32_t object_size_hint );
 
 variable_blob db_get_object( const uint256& space, const uint256& key, int32_t object_size_hint ){
    auto args = pack::to_variable_blob(
