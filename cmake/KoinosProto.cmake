@@ -5,18 +5,17 @@ include(${KOINOS_PROTOBUF_ROOT}/lib/cmake/protobuf/protobuf-options.cmake)
 include(${KOINOS_PROTOBUF_ROOT}/lib/cmake/protobuf/protobuf-targets.cmake)
 
 find_package(Protobuf 3.17.3.0 EXACT REQUIRED CONFIG)
-if (Protobuf_FOUND)
-    message(STATUS "Protobuf version : ${Protobuf_VERSION}")
-    message(STATUS "Protobuf include path : ${Protobuf_INCLUDE_DIRS}")
-    message(STATUS "Protobuf libraries : ${Protobuf_LIBRARIES}")
-    message(STATUS "Protobuf compiler libraries : ${Protobuf_PROTOC_LIBRARIES}")
-    message(STATUS "Protobuf lite libraries : ${Protobuf_LITE_LIBRARIES}")
+if(Protobuf_FOUND)
+  message(STATUS "Protobuf version: ${Protobuf_VERSION}")
+  message(STATUS "Protobuf include path: ${Protobuf_INCLUDE_DIRS}")
+  message(STATUS "Protobuf libraries: ${Protobuf_LIBRARIES}")
+  message(STATUS "Protobuf compiler libraries: ${Protobuf_PROTOC_LIBRARIES}")
+  message(STATUS "Protobuf lite libraries: ${Protobuf_LITE_LIBRARIES}")
 else()
-    message(WARNING "Protobuf package not found -> specify search path via PROTOBUF_ROOT variable")
+  message(WARNING "Protobuf package not found: specify search path via KOINOS_PROTOBUF_ROOT variable")
 endif()
 
-###
-
+# This CMake macro is heavily based on the macro protobuf_generate provided by the Protobuf project
 function(koinos_generate_proto)
   include(CMakeParseArguments)
 
