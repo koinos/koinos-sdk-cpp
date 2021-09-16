@@ -13,3 +13,5 @@ set(VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 include( KoinosBoostHeaders )
 include( KoinosConfigureToolchain )
 include( KoinosLibraries )
+include( KoinosProtoInstall )
+
