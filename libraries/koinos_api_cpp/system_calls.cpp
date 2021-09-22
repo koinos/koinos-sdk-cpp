@@ -629,7 +629,7 @@ std::pair< std::string, koinos::chain::privilege > get_caller()
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::get_caller_return< detail::max_caller_return_size > ret;
+   koinos::chain::get_caller_return< detail::max_hash_size > ret;
    ret.deserialize( rdbuf );
 
    return std::make_pair( std::string( reinterpret_cast< const char* >( ret.caller() ) ), ret.get_caller_privilege() );

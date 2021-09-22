@@ -18,7 +18,6 @@ namespace detail {
    constexpr std::size_t max_contract_size      = 2 << 20;
    constexpr std::size_t max_space_size         = 512;
    constexpr std::size_t max_key_size           = 512;
-   constexpr std::size_t max_caller_return_size = max_hash_size + 8;
 }
 
 using block = koinos::protocol::block<
