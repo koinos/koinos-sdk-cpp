@@ -12,14 +12,13 @@ extern "C" void invoke_system_call( uint32_t sid, char* ret_ptr, uint32_t ret_le
 namespace koinos::system {
 
 namespace detail {
-   constexpr std::size_t max_buffer_size = 1 << 20;
    static std::array< uint8_t, max_buffer_size > return_buffer;
    static std::array< uint8_t, max_buffer_size > argument_buffer;
 }
 
 void print( const std::string& s )
 {
-   koinos::chain::prints_args< 128 > args;
+   koinos::chain::prints_args< detail::max_argument_size > args;
    args.mutable_message() = s.c_str();
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
@@ -36,7 +35,14 @@ void print( const std::string& s )
 
 bool verify_block_signature( const std::string& digest, const std::string& active_data, const std::string& sig )
 {
-   koinos::chain::verify_block_signature_args< 64, 64, 64, 64, 64, 1024 > args;
+   koinos::chain::verify_block_signature_args<
+      detail::max_hash_size,
+      detail::max_hash_size,
+      detail::max_hash_size,
+      detail::max_hash_size,
+      detail::max_hash_size,
+      detail::max_active_data_size > args;
+
    args.mutable_digest().set( reinterpret_cast< const uint8_t* >( digest.data() ), digest.size() );
    args.mutable_active_blob().set( reinterpret_cast< const uint8_t* >( active_data.data() ), active_data.size() );
    args.mutable_signature_data().set( reinterpret_cast< const uint8_t* >( sig.data() ), sig.size() );
@@ -62,7 +68,17 @@ bool verify_block_signature( const std::string& digest, const std::string& activ
 
 void apply_block( const block& b, bool check_passive_data, bool check_block_signature, bool check_transaction_signatures )
 {
-   koinos::chain::apply_block_args< 64, 64, 1024, 1024, 64, 256, 64, 1024, 1024, 64> args;
+   koinos::chain::apply_block_args<
+      detail::max_hash_size,
+      detail::max_hash_size,
+      detail::max_active_data_size,
+      detail::max_passive_data_size,
+      detail::max_hash_size,
+      detail::max_transaction_length,
+      detail::max_hash_size,
+      detail::max_active_data_size,
+      detail::max_passive_data_size,
+      detail::max_hash_size > args;
    args.mutable_block() = b;
    args.set_check_passive_data( check_passive_data );
    args.set_check_block_signature( check_block_signature );
@@ -82,7 +98,11 @@ void apply_block( const block& b, bool check_passive_data, bool check_block_sign
 
 void apply_transaction( const transaction& t )
 {
-   koinos::chain::apply_transaction_args< 64, 1024, 1024, 64 > args;
+   koinos::chain::apply_transaction_args<
+      detail::max_hash_size,
+      detail::max_active_data_size,
+      detail::max_passive_data_size,
+      detail::max_hash_size > args;
    args.mutable_transaction() = t;
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
@@ -99,7 +119,9 @@ void apply_transaction( const transaction& t )
 
 void apply_upload_contract_operation( const upload_contract_operation& o )
 {
-   koinos::chain::apply_upload_contract_operation_args< 64, 2097152 > args;
+   koinos::chain::apply_upload_contract_operation_args<
+      detail::max_hash_size,
+      detail::max_contract_size > args;
    args.mutable_op() = o;
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
@@ -116,7 +138,9 @@ void apply_upload_contract_operation( const upload_contract_operation& o )
 
 void apply_execute_contract_operation( const call_contract_operation& o )
 {
-   koinos::chain::apply_call_contract_operation_args< 64, 2048 > args;
+   koinos::chain::apply_call_contract_operation_args<
+      detail::max_hash_size,
+      detail::max_argument_size > args;
    args.mutable_op() = o;
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
@@ -133,7 +157,7 @@ void apply_execute_contract_operation( const call_contract_operation& o )
 
 void apply_set_system_call_operation( const set_system_call_operation& o )
 {
-   koinos::chain::apply_set_system_call_operation_args< 256 > args;
+   koinos::chain::apply_set_system_call_operation_args< detail::max_argument_size > args;
    args.mutable_op() = o;
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
@@ -150,7 +174,7 @@ void apply_set_system_call_operation( const set_system_call_operation& o )
 
 bool put_object( const std::string& space, const std::string& key, const std::string& obj )
 {
-   koinos::chain::put_object_args< 512, 512, 2048 > args;
+   koinos::chain::put_object_args< detail::max_space_size, detail::max_key_size, detail::max_argument_size > args;
    args.mutable_key().set( reinterpret_cast< const uint8_t* >( space.data() ), space.size() );
    args.mutable_space().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
    args.mutable_obj().set( reinterpret_cast< const uint8_t* >( obj.data() ), obj.size() );
@@ -176,7 +200,7 @@ bool put_object( const std::string& space, const std::string& key, const std::st
 
 std::string get_object( const std::string& space, const std::string& key, int32_t object_size_hint )
 {
-   koinos::chain::get_object_args< 512, 512 > args;
+   koinos::chain::get_object_args< detail::max_space_size, detail::max_key_size > args;
    args.mutable_space().set( reinterpret_cast< const uint8_t* >( space.data() ), space.size() );
    args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
    args.mutable_object_size_hint() = object_size_hint;
@@ -194,7 +218,7 @@ std::string get_object( const std::string& space, const std::string& key, int32_
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::get_object_return< 2048 > ret;
+   koinos::chain::get_object_return< detail::max_argument_size > ret;
    ret.deserialize( rdbuf );
 
    return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ), ret.get_value().get_length() );
@@ -202,7 +226,7 @@ std::string get_object( const std::string& space, const std::string& key, int32_
 
 std::string get_next_object( const std::string& space, const std::string& key, int32_t object_size_hint )
 {
-   koinos::chain::get_next_object_args< 512, 512 > args;
+   koinos::chain::get_next_object_args< detail::max_space_size, detail::max_key_size > args;
    args.mutable_space().set( reinterpret_cast< const uint8_t* >( space.data() ), space.size() );
    args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
    args.mutable_object_size_hint() = object_size_hint;
@@ -220,7 +244,7 @@ std::string get_next_object( const std::string& space, const std::string& key, i
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::get_next_object_return< 2048 > ret;
+   koinos::chain::get_next_object_return< detail::max_argument_size > ret;
    ret.deserialize( rdbuf );
 
    return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ), ret.get_value().get_length() );
@@ -228,7 +252,7 @@ std::string get_next_object( const std::string& space, const std::string& key, i
 
 std::string get_prev_object( const std::string& space, const std::string& key, int32_t object_size_hint )
 {
-   koinos::chain::get_prev_object_args< 512, 512 > args;
+   koinos::chain::get_prev_object_args< detail::max_space_size, detail::max_key_size > args;
    args.mutable_space().set( reinterpret_cast< const uint8_t* >( space.data() ), space.size() );
    args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
    args.mutable_object_size_hint() = object_size_hint;
@@ -246,7 +270,7 @@ std::string get_prev_object( const std::string& space, const std::string& key, i
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::get_prev_object_return< 2048 > ret;
+   koinos::chain::get_prev_object_return< detail::max_argument_size > ret;
    ret.deserialize( rdbuf );
 
    return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ), ret.get_value().get_length() );
@@ -254,7 +278,7 @@ std::string get_prev_object( const std::string& space, const std::string& key, i
 
 std::string call_contract( const std::string& contract_id, uint32_t entry_point, const std::string& contract_args )
 {
-   koinos::chain::call_contract_args< 64, 2048 > args;
+   koinos::chain::call_contract_args< detail::max_hash_size, detail::max_argument_size > args;
    args.mutable_contract_id().set( reinterpret_cast< const uint8_t* >( contract_id.data() ), contract_id.size() );
    args.mutable_entry_point() = entry_point;
    args.mutable_args().set( reinterpret_cast< const uint8_t* >( contract_args.data() ), contract_args.size() );
@@ -272,7 +296,7 @@ std::string call_contract( const std::string& contract_id, uint32_t entry_point,
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::call_contract_return< 2048 > ret;
+   koinos::chain::call_contract_return< detail::max_argument_size > ret;
    ret.deserialize( rdbuf );
 
    return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ), ret.get_value().get_length() );
@@ -341,7 +365,7 @@ std::string get_contract_args()
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::get_contract_args_return< 2048 > ret;
+   koinos::chain::get_contract_args_return< detail::max_argument_size > ret;
    ret.deserialize( rdbuf );
 
    return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ), ret.get_value().get_length() );
@@ -349,7 +373,7 @@ std::string get_contract_args()
 
 void set_contract_return_bytes( const std::string& ret )
 {
-   koinos::chain::set_contract_return_args< 2048 > args;
+   koinos::chain::set_contract_return_args< detail::max_argument_size > args;
    args.mutable_value().set( reinterpret_cast< const uint8_t* >( ret.data() ), ret.size() );
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
@@ -398,7 +422,7 @@ head_info get_head_info()
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::get_head_info_return< 64, 64 > ret;
+   koinos::chain::get_head_info_return< detail::max_hash_size, detail::max_hash_size > ret;
    ret.deserialize( rdbuf );
 
    return ret.get_value();
@@ -406,7 +430,7 @@ head_info get_head_info()
 
 std::string hash( uint64_t code, const std::string& obj, uint64_t size )
 {
-   koinos::chain::hash_args< 2048 > args;
+   koinos::chain::hash_args< detail::max_argument_size > args;
    args.mutable_code() = code;
    args.mutable_obj().set( reinterpret_cast< const uint8_t* >( obj.data() ), obj.size() );
    args.mutable_size() = size;
@@ -424,7 +448,7 @@ std::string hash( uint64_t code, const std::string& obj, uint64_t size )
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::hash_return< 2048 > ret;
+   koinos::chain::hash_return< detail::max_hash_size > ret;
    ret.deserialize( rdbuf );
 
    return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ), ret.get_value().get_length() );
@@ -432,7 +456,7 @@ std::string hash( uint64_t code, const std::string& obj, uint64_t size )
 
 std::string recover_public_key( const std::string& signature_data, const std::string& digest )
 {
-   koinos::chain::recover_public_key_args< 64, 64 > args;
+   koinos::chain::recover_public_key_args< detail::max_hash_size, detail::max_hash_size > args;
    args.mutable_digest().set( reinterpret_cast< const uint8_t* >( digest.data() ), digest.size() );
    args.mutable_signature_data().set( reinterpret_cast< const uint8_t* >( signature_data.data() ), signature_data.size() );
 
@@ -449,7 +473,7 @@ std::string recover_public_key( const std::string& signature_data, const std::st
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::recover_public_key_return< 256 > ret;
+   koinos::chain::recover_public_key_return< detail::max_hash_size > ret;
    ret.deserialize( rdbuf );
 
    return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ), ret.get_value().get_length() );
@@ -457,7 +481,13 @@ std::string recover_public_key( const std::string& signature_data, const std::st
 
 bool verify_merkle_root( const std::string& root, const std::vector< std::string >& hashes )
 {
-   koinos::chain::verify_block_signature_args< 128, 128, 128, 128, 128, 128 > args;
+   koinos::chain::verify_block_signature_args<
+      detail::max_hash_size,
+      detail::max_hash_size,
+      detail::max_hash_size,
+      detail::max_hash_size,
+      detail::max_hash_size,
+      detail::max_active_data_size > args;
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
@@ -481,7 +511,11 @@ bool verify_merkle_root( const std::string& root, const std::vector< std::string
 
 std::string get_transaction_payer( const transaction& trx )
 {
-   koinos::chain::get_transaction_payer_args< 64, 1024, 1024, 64 > args;
+   koinos::chain::get_transaction_payer_args<
+      detail::max_hash_size,
+      detail::max_active_data_size,
+      detail::max_passive_data_size,
+      detail::max_hash_size > args;
    args.mutable_transaction() = trx;
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
@@ -497,7 +531,7 @@ std::string get_transaction_payer( const transaction& trx )
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::get_transaction_payer_return< 256 > ret;
+   koinos::chain::get_transaction_payer_return< detail::max_hash_size > ret;
    ret.deserialize( rdbuf );
 
    return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ), ret.get_value().get_length() );
@@ -505,7 +539,7 @@ std::string get_transaction_payer( const transaction& trx )
 
 uint64_t get_max_account_resources( const std::string& account )
 {
-   koinos::chain::get_max_account_resources_args< 128 > args;
+   koinos::chain::get_max_account_resources_args< detail::max_hash_size > args;
    args.mutable_account().set( reinterpret_cast< const uint8_t* >( account.data() ), account.size() );
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
@@ -529,7 +563,11 @@ uint64_t get_max_account_resources( const std::string& account )
 
 uint64_t get_transaction_resource_limit( const transaction& trx )
 {
-   koinos::chain::get_transaction_resource_limit_args< 64, 1024, 1024, 64 > args;
+   koinos::chain::get_transaction_resource_limit_args<
+      detail::max_hash_size,
+      detail::max_active_data_size,
+      detail::max_passive_data_size,
+      detail::max_hash_size > args;
    args.mutable_transaction() = trx;
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
@@ -591,7 +629,7 @@ std::pair< std::string, koinos::chain::privilege > get_caller()
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::get_caller_return< 128 > ret;
+   koinos::chain::get_caller_return< detail::max_caller_return_size > ret;
    ret.deserialize( rdbuf );
 
    return std::make_pair( std::string( reinterpret_cast< const char* >( ret.caller() ) ), ret.get_caller_privilege() );
@@ -599,7 +637,7 @@ std::pair< std::string, koinos::chain::privilege > get_caller()
 
 void require_authority( const std::string& account )
 {
-   koinos::chain::require_authority_args< 128 > args;
+   koinos::chain::require_authority_args< detail::max_hash_size > args;
    args.mutable_account().set( reinterpret_cast< const uint8_t* >( account.data() ), account.size() );
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
@@ -631,7 +669,7 @@ std::string get_transaction_signature()
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::get_transaction_signature_return< 128 > ret;
+   koinos::chain::get_transaction_signature_return< detail::max_hash_size > ret;
    ret.deserialize( rdbuf );
 
    return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ) );
@@ -654,7 +692,7 @@ std::string get_contract_id()
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
 
-   koinos::chain::get_contract_id_return< 128 > ret;
+   koinos::chain::get_contract_id_return< detail::max_hash_size > ret;
    ret.deserialize( rdbuf );
 
    return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ) );

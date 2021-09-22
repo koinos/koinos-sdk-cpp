@@ -8,12 +8,47 @@
 
 namespace koinos::system {
 
-using block = koinos::protocol::block< 64, 64, 1024, 1024, 64, 256, 64, 1024, 1024, 64 >;
-using transaction = koinos::protocol::transaction< 64, 1024, 1024, 64 >;
-using upload_contract_operation = koinos::protocol::upload_contract_operation< 64, 2097152 >;
-using call_contract_operation = koinos::protocol::call_contract_operation< 64, 2048 >;
-using set_system_call_operation = koinos::protocol::set_system_call_operation< 256 >;
-using head_info = koinos::chain::head_info< 64, 64 >;
+namespace detail {
+   constexpr std::size_t max_hash_size          = 67;
+   constexpr std::size_t max_active_data_size   = 1 << 20;
+   constexpr std::size_t max_passive_data_size  = 1 << 20;
+   constexpr std::size_t max_argument_size      = 2048;
+   constexpr std::size_t max_buffer_size        = 1 << 20;
+   constexpr std::size_t max_transaction_length = 512;
+   constexpr std::size_t max_contract_size      = 2 << 20;
+   constexpr std::size_t max_space_size         = 512;
+   constexpr std::size_t max_key_size           = 512;
+   constexpr std::size_t max_caller_return_size = max_hash_size + 8;
+}
+
+using block = koinos::protocol::block<
+   detail::max_hash_size,
+   detail::max_hash_size,
+   detail::max_active_data_size,
+   detail::max_passive_data_size,
+   detail::max_hash_size,
+   detail::max_transaction_length,
+   detail::max_hash_size,
+   detail::max_active_data_size,
+   detail::max_passive_data_size,
+   detail::max_hash_size >;
+
+using transaction = koinos::protocol::transaction<
+   detail::max_hash_size,
+   detail::max_active_data_size,
+   detail::max_passive_data_size,
+   detail::max_hash_size >;
+
+using upload_contract_operation = koinos::protocol::upload_contract_operation<
+   detail::max_hash_size,
+   detail::max_contract_size >;
+
+using call_contract_operation = koinos::protocol::call_contract_operation<
+   detail::max_hash_size,
+   detail::max_argument_size >;
+
+using set_system_call_operation = koinos::protocol::set_system_call_operation< detail::max_argument_size >;
+using head_info = koinos::chain::head_info< detail::max_hash_size, detail::max_hash_size >;
 
 void print( const std::string& s );
 
