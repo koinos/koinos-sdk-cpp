@@ -530,7 +530,7 @@ uint64_t get_max_account_resources( const std::string& account )
 uint64_t get_transaction_resource_limit( const transaction& trx )
 {
    koinos::chain::get_transaction_resource_limit_args< 64, 1024, 1024, 64 > args;
-   args.mutable_transction() = trx;
+   args.mutable_transaction() = trx;
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
