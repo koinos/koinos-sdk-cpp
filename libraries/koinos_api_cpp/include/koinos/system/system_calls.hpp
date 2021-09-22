@@ -79,7 +79,7 @@ std::string get_object( const std::string& space, const std::string& key, int32_
 template< typename T >
 bool get_object( const std::string& space, const std::string& key, T& t )
 {
-   auto obj = get_object( space, key, sizeof( T ) );
+   auto obj = get_object( space, key );
    if ( obj.size() )
    {
       t.ParseFromString( obj );
