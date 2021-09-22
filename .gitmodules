@@ -1,3 +1,6 @@
 [submodule "host/boost"]
 	path = host/boost
 	url = https://github.com/boostorg/boost
+[submodule "libraries/koinos_proto"]
+	path = libraries/koinos_proto
+	url = https://github.com/koinos/koinos-proto-embedded-cpp.git
