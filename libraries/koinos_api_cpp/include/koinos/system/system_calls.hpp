@@ -16,8 +16,8 @@ namespace detail {
    constexpr std::size_t max_buffer_size        = 1 << 20;
    constexpr std::size_t max_transaction_length = 512;
    constexpr std::size_t max_contract_size      = 2 << 20;
-   constexpr std::size_t max_space_size         = 512;
-   constexpr std::size_t max_key_size           = 512;
+   constexpr std::size_t max_space_size         = 32;
+   constexpr std::size_t max_key_size           = 32;
 }
 
 using block = koinos::protocol::block<
