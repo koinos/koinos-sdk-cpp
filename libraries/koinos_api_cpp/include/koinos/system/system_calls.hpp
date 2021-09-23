@@ -59,7 +59,7 @@ void apply_transaction( const transaction& t );
 
 void apply_upload_contract_operation( const upload_contract_operation& o );
 
-void apply_execute_contract_operation( const call_contract_operation& op );
+void apply_call_contract_operation( const call_contract_operation& op );
 
 void apply_set_system_call_operation( const set_system_call_operation& op );
 

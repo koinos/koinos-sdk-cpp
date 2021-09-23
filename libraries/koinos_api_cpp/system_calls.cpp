@@ -136,7 +136,7 @@ void apply_upload_contract_operation( const upload_contract_operation& o )
    );
 }
 
-void apply_execute_contract_operation( const call_contract_operation& o )
+void apply_call_contract_operation( const call_contract_operation& o )
 {
    koinos::chain::apply_call_contract_operation_args<
       detail::max_hash_size,
