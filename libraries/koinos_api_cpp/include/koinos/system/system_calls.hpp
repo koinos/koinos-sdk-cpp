@@ -6,6 +6,9 @@
 #include <koinos/chain/chain.h>
 #include <koinos/protocol/protocol.h>
 
+#include <koinos/buffer.hpp>
+#include <koinos/common.h>
+
 namespace koinos::system {
 
 namespace detail {
@@ -68,9 +71,10 @@ bool put_object( const std::string& space, const std::string& key, const std::st
 template< typename T >
 bool put_object( const std::string& space, const std::string& key, const T& value )
 {
-   std::string obj;
-   value.SerializeToString( &obj );
-   return put_object( space, key, obj );
+   std::array< uint8_t, detail::max_argument_size > buf;
+   koinos::write_buffer buffer( buf.data(), buf.size() );
+   value.serialize( buffer );
+   return put_object( space, key, std::string( reinterpret_cast< char* >( buf.data() ), buffer.get_size() ) );
 }
 
 std::string get_object( const std::string& space, const std::string& key, int32_t object_size_hint = -1 );
@@ -81,7 +85,8 @@ bool get_object( const std::string& space, const std::string& key, T& t )
    auto obj = get_object( space, key );
    if ( obj.size() )
    {
-      t.ParseFromString( obj );
+      koinos::read_buffer buffer( reinterpret_cast< uint8_t* >( obj.data() ), obj.size() );
+      t.deserialize( buffer );
       return true;
    }
 

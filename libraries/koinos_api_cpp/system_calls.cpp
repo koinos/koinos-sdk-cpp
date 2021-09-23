@@ -1,8 +1,6 @@
 #include <koinos/system/system_calls.hpp>
 
 #include <koinos/protocol/system_call_ids.h>
-#include <koinos/buffer.hpp>
-#include <koinos/common.h>
 
 #include <array>
 #include <string>
