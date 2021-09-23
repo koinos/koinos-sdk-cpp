@@ -74,7 +74,7 @@ bool put_object( const std::string& space, const std::string& key, const T& valu
    std::array< uint8_t, detail::max_argument_size > buf;
    koinos::write_buffer buffer( buf.data(), buf.size() );
    value.serialize( buffer );
-   return put_object( space, key, std::string( reinterpret_cast< char* >( buf.data() ), buffer.get_size() ) );
+   return put_object( space, key, std::string( reinterpret_cast< char* >( buffer.data() ), buffer.get_size() ) );
 }
 
 std::string get_object( const std::string& space, const std::string& key, int32_t object_size_hint = -1 );
