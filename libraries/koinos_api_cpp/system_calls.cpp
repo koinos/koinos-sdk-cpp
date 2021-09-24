@@ -35,14 +35,11 @@ bool verify_block_signature( const std::string& digest, const std::string& activ
 {
    koinos::chain::verify_block_signature_args<
       detail::max_hash_size,
-      detail::max_hash_size,
-      detail::max_hash_size,
-      detail::max_hash_size,
-      detail::max_hash_size,
-      detail::max_active_data_size > args;
+      detail::max_active_data_size,
+      detail::max_hash_size > args;
 
    args.mutable_digest().set( reinterpret_cast< const uint8_t* >( digest.data() ), digest.size() );
-   args.mutable_active_blob().set( reinterpret_cast< const uint8_t* >( active_data.data() ), active_data.size() );
+   args.mutable_active().set( reinterpret_cast< const uint8_t* >( active_data.data() ), active_data.size() );
    args.mutable_signature_data().set( reinterpret_cast< const uint8_t* >( sig.data() ), sig.size() );
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
@@ -481,11 +478,8 @@ bool verify_merkle_root( const std::string& root, const std::vector< std::string
 {
    koinos::chain::verify_block_signature_args<
       detail::max_hash_size,
-      detail::max_hash_size,
-      detail::max_hash_size,
-      detail::max_hash_size,
-      detail::max_hash_size,
-      detail::max_active_data_size > args;
+      detail::max_active_data_size,
+      detail::max_hash_size > args;
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
