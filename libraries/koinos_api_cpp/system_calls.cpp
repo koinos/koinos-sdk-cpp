@@ -159,7 +159,7 @@ void apply_set_system_call_operation( const set_system_call_operation& o )
    args.serialize( buffer );
 
    invoke_system_call(
-      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::apply_call_contract_operation ),
+      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::apply_set_system_call_operation ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
       reinterpret_cast< char* >( detail::argument_buffer.data() ),
@@ -204,7 +204,7 @@ std::string get_object( const std::string& space, const std::string& key, int32_
    args.serialize( buffer );
 
    invoke_system_call(
-      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::put_object ),
+      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_object ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
       reinterpret_cast< char* >( detail::argument_buffer.data() ),
@@ -328,7 +328,7 @@ uint32_t get_contract_args_size()
    args.serialize( buffer );
 
    invoke_system_call(
-      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_contract_args ),
+      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_contract_args_size ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
       reinterpret_cast< char* >( detail::argument_buffer.data() ),
@@ -485,7 +485,7 @@ bool verify_merkle_root( const std::string& root, const std::vector< std::string
    args.serialize( buffer );
 
    invoke_system_call(
-      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::verify_block_signature ),
+      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::verify_merkle_root ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
       reinterpret_cast< char* >( detail::argument_buffer.data() ),
