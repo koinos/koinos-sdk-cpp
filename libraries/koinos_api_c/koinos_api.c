@@ -11,6 +11,6 @@ void koinos_exit( uint32_t rval )
    char rbuf[2];
    rbuf[0] = 0x08;
    rbuf[1] = ( rval == 0 ) ? 0x00 : 0x01;
-   invoke_system_call( KOINOS_SYSTEM_CALL_EXIT_CONTRACT, KOINOS_NULL, 0, &rbuf, 2 );
+   invoke_system_call( KOINOS_SYSTEM_CALL_EXIT_CONTRACT, KOINOS_NULL, 0, rbuf, 2 );
 }
 #pragma GCC diagnostic pop
