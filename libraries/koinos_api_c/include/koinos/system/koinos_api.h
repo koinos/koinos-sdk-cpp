@@ -7,8 +7,8 @@
 #define KOINOS_EXPORT \
    __attribute__((visibility ("default")))
 
-KOINOS_IMPORT void invoke_thunk( uint32_t tid, uint8_t* ret_ptr, uint32_t ret_len, const uint8_t* arg_ptr, uint32_t arg_len );
-KOINOS_IMPORT void invoke_system_call( uint32_t xid, uint8_t* ret_ptr, uint32_t ret_len, const uint8_t* arg_ptr, uint32_t arg_len );
+KOINOS_IMPORT void invoke_thunk( uint32_t tid, char* ret_ptr, uint32_t ret_len, const char* arg_ptr, uint32_t arg_len );
+KOINOS_IMPORT void invoke_system_call( uint32_t xid, char* ret_ptr, uint32_t ret_len, const char* arg_ptr, uint32_t arg_len );
 
 __attribute__((__noreturn__))
 void koinos_exit( uint32_t rval );
