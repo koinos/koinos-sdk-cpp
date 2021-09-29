@@ -42,12 +42,14 @@ inline bool put_object( const std::string& space, const std::string& key, const 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::put_object ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -68,12 +70,14 @@ inline std::string get_object( const std::string& space, const std::string& key,
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_object ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -123,12 +127,14 @@ inline void print( const std::string& s )
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::prints ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 }
 
@@ -146,12 +152,14 @@ inline bool verify_block_signature( const std::string& digest, const std::string
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::verify_block_signature ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -183,12 +191,14 @@ inline void apply_block( const block& b, bool check_passive_data, bool check_blo
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::apply_block ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 }
 
@@ -204,12 +214,14 @@ inline void apply_transaction( const transaction& t )
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::apply_transaction ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 }
 
@@ -223,12 +235,14 @@ inline void apply_upload_contract_operation( const upload_contract_operation& o 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::apply_upload_contract_operation ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 }
 
@@ -242,12 +256,14 @@ inline void apply_call_contract_operation( const call_contract_operation& o )
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::apply_call_contract_operation ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 }
 
@@ -259,12 +275,14 @@ inline void apply_set_system_call_operation( const set_system_call_operation& o 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::apply_set_system_call_operation ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 }
 
@@ -278,12 +296,14 @@ inline std::string get_next_object( const std::string& space, const std::string&
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_next_object ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -304,12 +324,14 @@ inline std::string get_prev_object( const std::string& space, const std::string&
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_prev_object ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -330,12 +352,14 @@ inline std::string call_contract( const std::string& contract_id, uint32_t entry
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::call_contract ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -353,12 +377,14 @@ inline uint32_t get_entry_point()
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_entry_point ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -376,12 +402,14 @@ inline uint32_t get_contract_args_size()
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_contract_args_size ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -399,12 +427,14 @@ inline std::string get_contract_args()
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_contract_args ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -423,16 +453,18 @@ inline void set_contract_return_bytes( const std::string& ret )
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::set_contract_return ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 }
 
-inline void exit_contract( uint8_t exit_code )
+inline void exit_contract( uint32_t exit_code )
 {
    koinos::chain::exit_contract_args args;
    args.mutable_exit_code() = exit_code;
@@ -440,12 +472,14 @@ inline void exit_contract( uint8_t exit_code )
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::exit_contract ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 }
 
@@ -456,12 +490,14 @@ inline head_info get_head_info()
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_head_info ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -482,12 +518,14 @@ inline std::string hash( uint64_t code, const std::string& obj, uint64_t size = 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::hash ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -507,12 +545,14 @@ inline std::string recover_public_key( const std::string& signature_data, const 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::recover_public_key ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -533,12 +573,14 @@ inline bool verify_merkle_root( const std::string& root, const std::vector< std:
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::verify_merkle_root ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -562,12 +604,14 @@ inline std::string get_transaction_payer( const transaction& trx )
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_transaction_payer ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -586,12 +630,14 @@ inline uint64_t get_max_account_resources( const std::string& account )
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_max_account_resources ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -614,12 +660,14 @@ inline uint64_t get_transaction_resource_limit( const transaction& trx )
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_transaction_resource_limit ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -637,12 +685,14 @@ inline uint64_t get_last_irreversible_block()
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_last_irreversible_block ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -660,12 +710,14 @@ inline std::pair< std::string, koinos::chain::privilege > get_caller()
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_caller ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -684,12 +736,14 @@ inline void require_authority( const std::string& account )
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::require_authority ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 }
 
@@ -700,12 +754,14 @@ inline std::string get_transaction_signature()
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_transaction_signature ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -723,12 +779,14 @@ inline std::string get_contract_id()
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
    args.serialize( buffer );
 
+   detail::return_buffer.fill( 0 );
+
    invoke_system_call(
       std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_contract_id ),
       reinterpret_cast< char* >( detail::return_buffer.data() ),
       std::size( detail::return_buffer ),
-      reinterpret_cast< char* >( detail::argument_buffer.data() ),
-      std::size( detail::argument_buffer )
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
    );
 
    koinos::read_buffer rdbuf( detail::return_buffer.data(), detail::return_buffer.size() );
@@ -762,6 +820,7 @@ bool get_object( const std::string& space, const std::string& key, T& t )
    return false;
 }
 
+/*
 template< typename T >
 T get_contract_args()
 {
@@ -769,7 +828,7 @@ T get_contract_args()
    T t;
    t.ParseFromString( args );
    return t;
-}
+}*/
 
 template< typename T >
 void set_contract_return( T&& t )
