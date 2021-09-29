@@ -35,8 +35,8 @@ namespace detail {
 inline bool put_object( const std::string& space, const std::string& key, const std::string& obj )
 {
    koinos::chain::put_object_args< detail::max_space_size, detail::max_key_size, detail::max_argument_size > args;
-   args.mutable_key().set( reinterpret_cast< const uint8_t* >( space.data() ), space.size() );
-   args.mutable_space().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
+   args.mutable_space().set( reinterpret_cast< const uint8_t* >( space.data() ), space.size() );
+   args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
    args.mutable_obj().set( reinterpret_cast< const uint8_t* >( obj.data() ), obj.size() );
 
    koinos::write_buffer buffer( detail::argument_buffer.data(), detail::argument_buffer.size() );
@@ -58,7 +58,7 @@ inline bool put_object( const std::string& space, const std::string& key, const 
    return ret.get_value();
 }
 
-inline std::string get_object( const std::string& space, const std::string& key, int32_t object_size_hint = -1 )
+inline std::string get_object( const std::string& space, const std::string& key, uint32_t object_size_hint = 0 )
 {
    koinos::chain::get_object_args< detail::max_space_size, detail::max_key_size > args;
    args.mutable_space().set( reinterpret_cast< const uint8_t* >( space.data() ), space.size() );
@@ -268,7 +268,7 @@ inline void apply_set_system_call_operation( const set_system_call_operation& o 
    );
 }
 
-inline std::string get_next_object( const std::string& space, const std::string& key, int32_t object_size_hint )
+inline std::string get_next_object( const std::string& space, const std::string& key, uint32_t object_size_hint = 0 )
 {
    koinos::chain::get_next_object_args< detail::max_space_size, detail::max_key_size > args;
    args.mutable_space().set( reinterpret_cast< const uint8_t* >( space.data() ), space.size() );
@@ -294,7 +294,7 @@ inline std::string get_next_object( const std::string& space, const std::string&
    return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ), ret.get_value().get_length() );
 }
 
-inline std::string get_prev_object( const std::string& space, const std::string& key, int32_t object_size_hint )
+inline std::string get_prev_object( const std::string& space, const std::string& key, uint32_t object_size_hint = 0 )
 {
    koinos::chain::get_prev_object_args< detail::max_space_size, detail::max_key_size > args;
    args.mutable_space().set( reinterpret_cast< const uint8_t* >( space.data() ), space.size() );
@@ -673,7 +673,7 @@ inline std::pair< std::string, koinos::chain::privilege > get_caller()
    koinos::chain::get_caller_return< detail::max_hash_size > ret;
    ret.deserialize( rdbuf );
 
-   return std::make_pair( std::string( reinterpret_cast< const char* >( ret.caller() ) ), ret.get_caller_privilege() );
+   return std::make_pair( std::string( reinterpret_cast< const char* >( ret.get_caller().get_const() ), ret.get_caller().get_length() ), ret.get_caller_privilege() );
 }
 
 inline void require_authority( const std::string& account )
@@ -713,7 +713,7 @@ inline std::string get_transaction_signature()
    koinos::chain::get_transaction_signature_return< detail::max_hash_size > ret;
    ret.deserialize( rdbuf );
 
-   return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ) );
+   return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ), ret.get_value().get_length() );
 }
 
 inline std::string get_contract_id()
@@ -736,7 +736,7 @@ inline std::string get_contract_id()
    koinos::chain::get_contract_id_return< detail::max_hash_size > ret;
    ret.deserialize( rdbuf );
 
-   return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ) );
+   return std::string( reinterpret_cast< const char* >( ret.get_value().get_const() ), ret.get_value().get_length() );
 }
 
 template< typename T >
