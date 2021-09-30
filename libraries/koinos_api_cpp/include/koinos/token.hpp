@@ -1,5 +1,6 @@
 #pragma once
 #include <koinos/system/system_calls.hpp>
+#include <koinos/contracts/token/token.h>
 
 namespace koinos {
 
@@ -16,125 +17,106 @@ enum entries : uint32_t
    mint_entry         = 0xc2f82bdc
 };
 
-struct transfer_args
-{
-   protocol::account_type from;
-   protocol::account_type to;
-   uint64_t               value;
-};
+constexpr std::size_t max_address_size = 25;
 
-struct mint_args
-{
-   protocol::account_type to;
-   uint64_t               value;
-};
+using name_return = koinos::contracts::token::name_return< 32 >;
+using symbol_return = koinos::contracts::token::symbol_return< 8 >;
 
 } // detail
 
 class token
 {
    private:
-      contract_id_type _contract_address;
+      std::string _contract_address;
 
    public:
-      inline token( const contract_id_type& contract_address ) :
+      inline token( const std::string& contract_address ) :
          _contract_address( contract_address )
-      {}
-
-      inline token( const protocol::account_type& contract_address ) :
-         _contract_address( pack::from_variable_blob< contract_id_type >( contract_address ) )
-      {}
-
-      inline token( const uint160_t& contract_address ) :
-         _contract_address( pack::from_variable_blob< contract_id_type >( pack::to_variable_blob( contract_address ) ) )
       {}
 
       inline std::string name()
       {
-         return pack::from_variable_blob< std::string >(
-            system::execute_contract(
-               _contract_address,
-               detail::entries::name_entry,
-               variable_blob()
-            )
-         );
+         auto retstr = system::call_contract( _contract_address, detail::entries::name_entry, std::string() );
+         koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
+         detail::name_return ret;
+         ret.deserialize( buf );
+         return std::string( ret.get_value().get_const(), ret.get_value().get_length() );
       }
 
       inline std::string symbol()
       {
-         return pack::from_variable_blob< std::string >(
-            system::execute_contract(
-               _contract_address,
-               detail::entries::symbol_entry,
-               variable_blob()
-            )
-         );
+         auto retstr = system::call_contract( _contract_address, detail::entries::symbol_entry, std::string() );
+         koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
+         detail::symbol_return ret;
+         ret.deserialize( buf );
+         return std::string( ret.get_value().get_const(), ret.get_value().get_length() );
       }
 
       inline uint8_t decimals()
       {
-         return pack::from_variable_blob< uint8_t >(
-            system::execute_contract(
-               _contract_address,
-               detail::entries::decimals_entry,
-               variable_blob()
-            )
-         );
+         auto retstr = system::call_contract( _contract_address, detail::entries::decimals_entry, std::string() );
+         koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
+         koinos::contracts::token::decimals_return ret;
+         ret.deserialize( buf );
+         return ret.get_value();
       }
 
       inline uint64_t total_supply()
       {
-         return pack::from_variable_blob< uint64_t >(
-            system::execute_contract(
-               _contract_address,
-               detail::entries::total_supply_entry,
-               variable_blob()
-            )
-         );
+         auto retstr = system::call_contract( _contract_address, detail::entries::total_supply_entry, std::string() );
+         koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
+         koinos::contracts::token::total_supply_return ret;
+         ret.deserialize( buf );
+         return ret.get_value();
       }
 
-      inline uint64_t balance_of( const protocol::account_type& owner )
+      inline uint64_t balance_of( const std::string& owner )
       {
-         return pack::from_variable_blob< uint64_t >(
-            system::execute_contract(
-               _contract_address,
-               detail::entries::balance_of_entry,
-               pack::to_variable_blob( owner )
-            )
-         );
+         koinos::contracts::token::balance_of_args< detail::max_address_size > args;
+         std::array< uint8_t, 1024 > buffer;
+         args.mutable_owner().set( const_cast< uint8_t* >( reinterpret_cast< const uint8_t* >( owner.data() ) ), owner.size() );
+         koinos::write_buffer wbuf( buffer.data(), buffer.size() );
+         args.serialize( wbuf );
+
+         auto retstr = system::call_contract( _contract_address, detail::entries::balance_of_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
+         koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
+         koinos::contracts::token::balance_of_return ret;
+         ret.deserialize( buf );
+         return ret.get_value();
       }
 
-      inline bool transfer( const protocol::account_type& from, const protocol::account_type& to, const uint64_t& value )
+      inline bool transfer( const std::string& from, const std::string& to, const uint64_t& value )
       {
-         return pack::from_variable_blob< bool >(
-            system::execute_contract(
-               _contract_address,
-               detail::entries::transfer_entry,
-               pack::to_variable_blob( detail::transfer_args {
-                  .from = from,
-                  .to = to,
-                  .value = value
-               } )
-            )
-         );
+         koinos::contracts::token::transfer_args< detail::max_address_size, detail::max_address_size > args;
+         std::array< uint8_t, 1024 > buffer;
+         args.mutable_from().set( const_cast< uint8_t* >( reinterpret_cast< const uint8_t* >( from.data() ) ), from.size() );
+         args.mutable_from().set( const_cast< uint8_t* >( reinterpret_cast< const uint8_t* >( to.data() ) ), to.size() );
+         args.mutable_value() = value;
+         koinos::write_buffer wbuf( buffer.data(), buffer.size() );
+         args.serialize( wbuf );
+
+         auto retstr = system::call_contract( _contract_address, detail::entries::transfer_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
+         koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
+         koinos::contracts::token::transfer_return ret;
+         ret.deserialize( buf );
+         return ret.get_value();
       }
 
-      inline bool mint( const protocol::account_type& to, const uint64_t& value )
+      inline bool mint( const std::string& to, const uint64_t& value )
       {
-         return pack::from_variable_blob< bool >(
-            system::execute_contract(
-               _contract_address,
-               detail::entries::mint_entry,
-               pack::to_variable_blob( detail::mint_args {
-                  .to = to,
-                  .value = value
-               } )
-            )
-         );
+         koinos::contracts::token::mint_args< detail::max_address_size > args;
+         std::array< uint8_t, 1024 > buffer;
+         args.mutable_to().set( const_cast< uint8_t* >( reinterpret_cast< const uint8_t* >( to.data() ) ), to.size() );
+         args.mutable_value() = value;
+         koinos::write_buffer wbuf( buffer.data(), buffer.size() );
+         args.serialize( wbuf );
+
+         auto retstr = system::call_contract( _contract_address, detail::entries::mint_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
+         koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
+         koinos::contracts::token::mint_return ret;
+         ret.deserialize( buf );
+         return ret.get_value();
       }
 };
 
 } // koinos
-
-KOINOS_REFLECT( koinos::detail::transfer_args, (from)(to)(value) );
-KOINOS_REFLECT( koinos::detail::mint_args,     (to)(value) );
