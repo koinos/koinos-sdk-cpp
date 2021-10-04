@@ -19,8 +19,8 @@ enum entries : uint32_t
 
 constexpr std::size_t max_address_size = 25;
 
-using name_return = koinos::contracts::token::name_return< 32 >;
-using symbol_return = koinos::contracts::token::symbol_return< 8 >;
+using name_result = koinos::contracts::token::name_result< 32 >;
+using symbol_result = koinos::contracts::token::symbol_result< 8 >;
 
 } // detail
 
@@ -38,7 +38,7 @@ class token
       {
          auto retstr = system::call_contract( _contract_address, detail::entries::name_entry, std::string() );
          koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
-         detail::name_return ret;
+         detail::name_result ret;
          ret.deserialize( buf );
          return std::string( ret.get_value().get_const(), ret.get_value().get_length() );
       }
@@ -47,7 +47,7 @@ class token
       {
          auto retstr = system::call_contract( _contract_address, detail::entries::symbol_entry, std::string() );
          koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
-         detail::symbol_return ret;
+         detail::symbol_result ret;
          ret.deserialize( buf );
          return std::string( ret.get_value().get_const(), ret.get_value().get_length() );
       }
@@ -56,7 +56,7 @@ class token
       {
          auto retstr = system::call_contract( _contract_address, detail::entries::decimals_entry, std::string() );
          koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
-         koinos::contracts::token::decimals_return ret;
+         koinos::contracts::token::decimals_result ret;
          ret.deserialize( buf );
          return ret.get_value();
       }
@@ -65,14 +65,14 @@ class token
       {
          auto retstr = system::call_contract( _contract_address, detail::entries::total_supply_entry, std::string() );
          koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
-         koinos::contracts::token::total_supply_return ret;
+         koinos::contracts::token::total_supply_result ret;
          ret.deserialize( buf );
          return ret.get_value();
       }
 
       inline uint64_t balance_of( const std::string& owner )
       {
-         koinos::contracts::token::balance_of_args< detail::max_address_size > args;
+         koinos::contracts::token::balance_of_arguments< detail::max_address_size > args;
          std::array< uint8_t, 1024 > buffer;
          args.mutable_owner().set( const_cast< uint8_t* >( reinterpret_cast< const uint8_t* >( owner.data() ) ), owner.size() );
          koinos::write_buffer wbuf( buffer.data(), buffer.size() );
@@ -80,14 +80,14 @@ class token
 
          auto retstr = system::call_contract( _contract_address, detail::entries::balance_of_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
          koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
-         koinos::contracts::token::balance_of_return ret;
+         koinos::contracts::token::balance_of_result ret;
          ret.deserialize( buf );
          return ret.get_value();
       }
 
       inline bool transfer( const std::string& from, const std::string& to, const uint64_t& value )
       {
-         koinos::contracts::token::transfer_args< detail::max_address_size, detail::max_address_size > args;
+         koinos::contracts::token::transfer_arguments< detail::max_address_size, detail::max_address_size > args;
          std::array< uint8_t, 1024 > buffer;
          args.mutable_from().set( const_cast< uint8_t* >( reinterpret_cast< const uint8_t* >( from.data() ) ), from.size() );
          args.mutable_from().set( const_cast< uint8_t* >( reinterpret_cast< const uint8_t* >( to.data() ) ), to.size() );
@@ -97,14 +97,14 @@ class token
 
          auto retstr = system::call_contract( _contract_address, detail::entries::transfer_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
          koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
-         koinos::contracts::token::transfer_return ret;
+         koinos::contracts::token::transfer_result ret;
          ret.deserialize( buf );
          return ret.get_value();
       }
 
       inline bool mint( const std::string& to, const uint64_t& value )
       {
-         koinos::contracts::token::mint_args< detail::max_address_size > args;
+         koinos::contracts::token::mint_arguments< detail::max_address_size > args;
          std::array< uint8_t, 1024 > buffer;
          args.mutable_to().set( const_cast< uint8_t* >( reinterpret_cast< const uint8_t* >( to.data() ) ), to.size() );
          args.mutable_value() = value;
@@ -113,7 +113,7 @@ class token
 
          auto retstr = system::call_contract( _contract_address, detail::entries::mint_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
          koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
-         koinos::contracts::token::mint_return ret;
+         koinos::contracts::token::mint_result ret;
          ret.deserialize( buf );
          return ret.get_value();
       }
