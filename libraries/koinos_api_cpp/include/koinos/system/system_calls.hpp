@@ -12,7 +12,7 @@
 #include <koinos/buffer.hpp>
 #include <koinos/common.h>
 
-extern "C" void invoke_system_call( uint32_t sid, char* ret_ptr, uint32_t ret_len, char* arg_ptr, uint32_t arg_len );
+extern "C" uint32_t invoke_system_call( uint32_t sid, char* ret_ptr, uint32_t ret_len, char* arg_ptr, uint32_t arg_len );
 
 namespace koinos::system {
 
