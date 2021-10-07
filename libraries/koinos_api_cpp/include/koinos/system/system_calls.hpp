@@ -648,9 +648,9 @@ inline uint64_t get_account_rc( const std::string& account )
    return res.get_value();
 }
 
-inline uint64_t get_transaction_resource_limit( const transaction& trx )
+inline uint64_t get_transaction_rc_limit( const transaction& trx )
 {
-   koinos::chain::get_transaction_resource_limit_arguments<
+   koinos::chain::get_transaction_rc_limit_arguments<
       detail::max_hash_size,
       detail::max_active_data_size,
       detail::max_passive_data_size,
@@ -663,7 +663,7 @@ inline uint64_t get_transaction_resource_limit( const transaction& trx )
    detail::result_buffer.fill( 0 );
 
    invoke_system_call(
-      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_transaction_resource_limit ),
+      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_transaction_rc_limit ),
       reinterpret_cast< char* >( detail::result_buffer.data() ),
       std::size( detail::result_buffer ),
       reinterpret_cast< char* >( buffer.data() ),
@@ -672,7 +672,7 @@ inline uint64_t get_transaction_resource_limit( const transaction& trx )
 
    koinos::read_buffer rdbuf( detail::result_buffer.data(), detail::result_buffer.size() );
 
-   koinos::chain::get_transaction_resource_limit_result res;
+   koinos::chain::get_transaction_rc_limit_result res;
    res.deserialize( rdbuf );
 
    return res.get_value();
