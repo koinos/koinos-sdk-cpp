@@ -37,62 +37,6 @@ using get_object_arguments = koinos::chain::get_object_arguments< detail::zone_s
 using get_next_object_arguments = koinos::chain::get_next_object_arguments< detail::zone_size, detail::max_key_size >;
 using get_prev_object_arguments = koinos::chain::get_prev_object_arguments< detail::zone_size, detail::max_key_size >;
 
-namespace detail {
-
-inline bool put_object( const object_space& space, const std::string& key, const std::string& obj )
-{
-   put_object_arguments args;
-   args.mutable_space() = space;
-   args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
-   args.mutable_obj().set( reinterpret_cast< const uint8_t* >( obj.data() ), obj.size() );
-
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   args.serialize( buffer );
-
-   uint32_t ret_size = invoke_system_call(
-      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::put_object ),
-      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
-      std::size( detail::syscall_buffer ),
-      reinterpret_cast< char* >( buffer.data() ),
-      buffer.get_size()
-   );
-
-   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), ret_size );
-
-   koinos::chain::put_object_result res;
-   res.deserialize( rdbuf );
-
-   return res.get_value();
-}
-
-inline std::string get_object( const object_space& space, const std::string& key, uint32_t object_size_hint = 0 )
-{
-   get_object_arguments args;
-   args.mutable_space() = space;
-   args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
-   args.mutable_object_size_hint() = object_size_hint;
-
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   args.serialize( buffer );
-
-   uint32_t ret_size = invoke_system_call(
-      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_object ),
-      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
-      std::size( detail::syscall_buffer ),
-      reinterpret_cast< char* >( buffer.data() ),
-      buffer.get_size()
-   );
-
-   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), ret_size );
-
-   koinos::chain::get_object_result< detail::max_argument_size > res;
-   res.deserialize( rdbuf );
-
-   return std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() );
-}
-
-} // detail
-
 using block = koinos::protocol::block<
    detail::max_hash_size,
    detail::max_hash_size,
@@ -747,6 +691,76 @@ inline std::string get_contract_id()
 
    return std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() );
 }
+
+namespace detail {
+
+inline bool put_object( const object_space& space, const std::string& key, const std::string& obj )
+{
+   if ( key.size() >= detail::max_key_size )
+   {
+      std::string err_msg = "key size exceeds max size of " + detail::max_key_size;
+      print( err_msg );
+      exit_contract( 1 );
+   }
+
+   put_object_arguments args;
+   args.mutable_space() = space;
+   args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
+   args.mutable_obj().set( reinterpret_cast< const uint8_t* >( obj.data() ), obj.size() );
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   args.serialize( buffer );
+
+   uint32_t ret_size = invoke_system_call(
+      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::put_object ),
+      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
+      std::size( detail::syscall_buffer ),
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
+   );
+
+   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), ret_size );
+
+   koinos::chain::put_object_result res;
+   res.deserialize( rdbuf );
+
+   return res.get_value();
+}
+
+inline std::string get_object( const object_space& space, const std::string& key, uint32_t object_size_hint = 0 )
+{
+   if ( key.size() >= detail::max_key_size )
+   {
+      std::string err_msg = "key size exceeds max size of " + detail::max_key_size;
+      print( err_msg );
+      exit_contract( 1 );
+   }
+
+   get_object_arguments args;
+   args.mutable_space() = space;
+   args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
+   args.mutable_object_size_hint() = object_size_hint;
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   args.serialize( buffer );
+
+   uint32_t ret_size = invoke_system_call(
+      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::get_object ),
+      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
+      std::size( detail::syscall_buffer ),
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
+   );
+
+   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), ret_size );
+
+   koinos::chain::get_object_result< detail::max_argument_size > res;
+   res.deserialize( rdbuf );
+
+   return std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() );
+}
+
+} // detail
 
 template< typename T >
 bool put_object( const object_space& space, const std::string& key, const T& value )
