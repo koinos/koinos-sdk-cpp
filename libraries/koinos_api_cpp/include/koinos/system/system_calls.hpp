@@ -696,9 +696,9 @@ namespace detail {
 
 inline bool put_object( const object_space& space, const std::string& key, const std::string& obj )
 {
-   if ( key.size() >= detail::max_key_size )
+   if ( key.size() > detail::max_key_size )
    {
-      std::string err_msg = "key size exceeds max size of " + detail::max_key_size;
+      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
       print( err_msg );
       exit_contract( 1 );
    }
@@ -729,9 +729,9 @@ inline bool put_object( const object_space& space, const std::string& key, const
 
 inline std::string get_object( const object_space& space, const std::string& key, uint32_t object_size_hint = 0 )
 {
-   if ( key.size() >= detail::max_key_size )
+   if ( key.size() > detail::max_key_size )
    {
-      std::string err_msg = "key size exceeds max size of " + detail::max_key_size;
+      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
       print( err_msg );
       exit_contract( 1 );
    }
