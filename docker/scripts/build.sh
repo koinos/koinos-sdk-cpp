@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 # copy sources in to project
 cp -R /opt/project /tmp/project
 cd /src
@@ -19,10 +17,13 @@ cmake -DCMAKE_TOOLCHAIN_FILE=${KOINOS_CDT_ROOT}/cmake/koinos-wasm-toolchain.cmak
 make contract
 
 # copy build artifacts
-cd src
-cp contract.wasm /src
-cd ../types
-cp types.pb /src
+
+if [ $? -eq 0 ]; then
+   cd src
+   cp contract.wasm /src
+   cd ../types
+   cp types.pb /src
+fi
 
 # cleanup
 cd ~
