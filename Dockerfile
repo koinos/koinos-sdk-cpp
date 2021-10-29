@@ -12,9 +12,6 @@ RUN cd $KOINOS_WASI_SDK_ROOT/bin && ls -la && cd /koinos-cdt && \
 FROM koinos/koinos-cdt-toolchain:latest
 COPY --from=builder /opt/koinos-cdt /opt/koinos-cdt
 
-RUN mkdir -p /sources
-RUN apt install python3.8-venv
-
 ENV KOINOS_CDT_ROOT=/opt/koinos-cdt
 ADD ./docker/ /opt
 

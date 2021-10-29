@@ -1,18 +1,18 @@
 #!/bin/bash
 
 set -e
-set -x
 
 # copy sources in to project
-cd /sources
-find . -name \*.proto -exec cp {} /opt/project/types \;
-find . -name \*.c     -exec cp {} /opt/project/src \;
-find . -name \*.cpp   -exec cp {} /opt/project/src \;
-find . -name \*.h     -exec cp {} /opt/project/src \;
-find . -name \*.hpp   -exec cp {} /opt/project/src \;
+cp -R /opt/project /tmp/project
+cd /src
+find . -name \*.proto -exec cp {} /tmp/project/types \;
+find . -name \*.c     -exec cp {} /tmp/project/src \;
+find . -name \*.cpp   -exec cp {} /tmp/project/src \;
+find . -name \*.h     -exec cp {} /tmp/project/src \;
+find . -name \*.hpp   -exec cp {} /tmp/project/src \;
 
 # build contract
-cd /opt/project
+cd /tmp/project
 mkdir build
 cd build
 cmake -DCMAKE_TOOLCHAIN_FILE=${KOINOS_CDT_ROOT}/cmake/koinos-wasm-toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
@@ -20,6 +20,10 @@ make contract
 
 # copy build artifacts
 cd src
-cp contract.wasm /sources
+cp contract.wasm /src
 cd ../types
-cp types.pb /sources
+cp types.pb /src
+
+# cleanup
+cd ~
+rm -rf /tmp/project
