@@ -52,7 +52,7 @@ function(koinos_generate_proto)
   endif()
 
   if(NOT koinos_generate_proto_PLUGIN)
-    set(koinos_generate_proto_PLUGIN "protoc-gen-eams=${EAMS_DIR}/protoc-gen-eams")
+    set(koinos_generate_proto_PLUGIN "protoc-gen-eams=${KOINOS_EMBEDDED_PROTO_ROOT}/protoc-gen-eams")
   endif()
 
   if(koinos_generate_proto_PLUGIN)
@@ -167,5 +167,3 @@ function(koinos_generate_proto)
   endif()
 
 endfunction()
-
-
