@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(koinos_libraries)
+project(koinos_libraries C CXX)
 
 find_program(CCACHE_FOUND ccache)
 if (CCACHE_FOUND)
@@ -17,4 +17,3 @@ add_subdirectory(koinos_api_cpp)
 add_subdirectory(koinos_api_c)
 add_subdirectory(koinos_wasi_api)
 add_subdirectory(koinos_proto)
-
