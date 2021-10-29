@@ -4,3 +4,6 @@
 [submodule "libraries/koinos_proto"]
 	path = libraries/koinos_proto
 	url = https://github.com/koinos/koinos-proto-embedded-cpp.git
+[submodule "proto"]
+	path = proto
+	url = https://github.com/koinos/koinos-proto.git

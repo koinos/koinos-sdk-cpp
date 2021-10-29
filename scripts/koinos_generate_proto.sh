@@ -1,4 +1,3 @@
 #!/bin/bash
-sh setup.sh
+./setup.sh
 protoc "$@"
-

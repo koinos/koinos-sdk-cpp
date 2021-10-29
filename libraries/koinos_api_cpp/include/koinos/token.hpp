@@ -90,7 +90,7 @@ class token
          koinos::contracts::token::transfer_arguments< detail::max_address_size, detail::max_address_size > args;
          std::array< uint8_t, 1024 > buffer;
          args.mutable_from().set( const_cast< uint8_t* >( reinterpret_cast< const uint8_t* >( from.data() ) ), from.size() );
-         args.mutable_from().set( const_cast< uint8_t* >( reinterpret_cast< const uint8_t* >( to.data() ) ), to.size() );
+         args.mutable_to().set( const_cast< uint8_t* >( reinterpret_cast< const uint8_t* >( to.data() ) ), to.size() );
          args.mutable_value() = value;
          koinos::write_buffer wbuf( buffer.data(), buffer.size() );
          args.serialize( wbuf );
