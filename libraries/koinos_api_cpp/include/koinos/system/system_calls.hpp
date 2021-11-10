@@ -27,6 +27,8 @@ namespace detail {
    constexpr std::size_t max_space_size         = 32;
    constexpr std::size_t max_key_size           = 32;
    constexpr std::size_t zone_size              = 128;
+   constexpr std::size_t max_event_name_size    = 32;
+   constexpr std::size_t max_event_size         = 1024;
    static std::array< uint8_t, max_buffer_size > syscall_buffer;
 }
 
@@ -793,5 +795,22 @@ void set_contract_result( T&& t )
    set_contract_result_bytes( obj );
 }
 
+inline void event( const std::string& name, const std::string& data )
+{
+   koinos::chain::event_arguments< detail::max_event_name_size, detail::max_event_size > args;
+   args.mutable_name() = name.c_str();
+   args.mutable_data().set( reinterpret_cast< const uint8_t* >( data.data() ), data.size() );
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   args.serialize( buffer );
+
+   uint32_t ret_size = invoke_system_call(
+      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::event ),
+      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
+      std::size( detail::syscall_buffer ),
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
+   );
+}
 
 } // koinos::system
