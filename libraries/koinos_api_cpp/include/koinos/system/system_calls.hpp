@@ -29,6 +29,8 @@ namespace detail {
    constexpr std::size_t zone_size              = 128;
    constexpr std::size_t max_event_name_size    = 32;
    constexpr std::size_t max_event_size         = 1024;
+   constexpr std::size_t max_address_size       = 25;
+   constexpr std::size_t max_impacted_size      = 10;
    static std::array< uint8_t, max_buffer_size > syscall_buffer;
 }
 
@@ -795,11 +797,25 @@ void set_contract_result( T&& t )
    set_contract_result_bytes( obj );
 }
 
-inline void event( const std::string& name, const std::string& data )
+inline void event( const std::string& name, const std::string& data, const std::vector< std::string >& impacted = {} )
 {
-   koinos::chain::event_arguments< detail::max_event_name_size, detail::max_event_size > args;
+   if ( impacted.size() > detail::max_impacted_size )
+   {
+      std::string err_msg = "impacted size exceeds max size of " + std::to_string( detail::max_impacted_size );
+      print( err_msg );
+      exit_contract( 1 );
+   }
+
+   koinos::chain::event_arguments< detail::max_event_name_size, detail::max_event_size, detail::max_impacted_size, detail::max_address_size > args;
    args.mutable_name() = name.c_str();
    args.mutable_data().set( reinterpret_cast< const uint8_t* >( data.data() ), data.size() );
+
+   for ( const auto& s : impacted )
+   {
+      ::EmbeddedProto::FieldBytes< detail::max_address_size > value;
+      value.set( reinterpret_cast< const uint8_t* >( s.data() ), s.size() );
+      args.add_impacted( value );
+   }
 
    koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
    args.serialize( buffer );
