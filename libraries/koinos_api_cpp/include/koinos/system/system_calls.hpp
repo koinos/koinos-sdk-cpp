@@ -2,6 +2,8 @@
 #include <array>
 #include <string>
 #include <utility>
+#include <vector>
+
 #include <koinos/system/system_calls.hpp>
 
 #include <koinos/protocol/system_call_ids.h>
@@ -797,7 +799,8 @@ void set_contract_result( T&& t )
    set_contract_result_bytes( obj );
 }
 
-inline void event( const std::string& name, const std::string& data, const std::vector< std::string >& impacted = {} )
+template< typename T >
+inline void event( const std::string& name, const T& data, const std::vector< std::string >& impacted = {} )
 {
    if ( impacted.size() > detail::max_impacted_size )
    {
@@ -806,9 +809,13 @@ inline void event( const std::string& name, const std::string& data, const std::
       exit_contract( 1 );
    }
 
+   std::array< uint8_t, detail::max_argument_size > buf;
+   koinos::write_buffer wbuf( buf.data(), buf.size() );
+   data.serialize( wbuf );
+
    koinos::chain::event_arguments< detail::max_event_name_size, detail::max_event_size, detail::max_impacted_size, detail::max_address_size > args;
    args.mutable_name() = name.c_str();
-   args.mutable_data().set( reinterpret_cast< const uint8_t* >( data.data() ), data.size() );
+   args.mutable_data().set( wbuf.data(), wbuf.get_size() );
 
    for ( const auto& s : impacted )
    {
