@@ -2,6 +2,8 @@
 #include <array>
 #include <string>
 #include <utility>
+#include <vector>
+
 #include <koinos/system/system_calls.hpp>
 
 #include <koinos/protocol/system_call_ids.h>
@@ -27,6 +29,10 @@ namespace detail {
    constexpr std::size_t max_space_size         = 32;
    constexpr std::size_t max_key_size           = 32;
    constexpr std::size_t zone_size              = 128;
+   constexpr std::size_t max_event_name_size    = 32;
+   constexpr std::size_t max_event_size         = 1024;
+   constexpr std::size_t max_address_size       = 25;
+   constexpr std::size_t max_impacted_size      = 10;
    static std::array< uint8_t, max_buffer_size > syscall_buffer;
 }
 
@@ -793,5 +799,41 @@ void set_contract_result( T&& t )
    set_contract_result_bytes( obj );
 }
 
+template< typename T >
+inline void event( const std::string& name, const T& data, const std::vector< std::string >& impacted = {} )
+{
+   if ( impacted.size() > detail::max_impacted_size )
+   {
+      std::string err_msg = "impacted size exceeds max size of " + std::to_string( detail::max_impacted_size );
+      print( err_msg );
+      exit_contract( 1 );
+   }
+
+   std::array< uint8_t, detail::max_argument_size > buf;
+   koinos::write_buffer wbuf( buf.data(), buf.size() );
+   data.serialize( wbuf );
+
+   koinos::chain::event_arguments< detail::max_event_name_size, detail::max_event_size, detail::max_impacted_size, detail::max_address_size > args;
+   args.mutable_name() = name.c_str();
+   args.mutable_data().set( wbuf.data(), wbuf.get_size() );
+
+   for ( const auto& s : impacted )
+   {
+      ::EmbeddedProto::FieldBytes< detail::max_address_size > value;
+      value.set( reinterpret_cast< const uint8_t* >( s.data() ), s.size() );
+      args.add_impacted( value );
+   }
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   args.serialize( buffer );
+
+   uint32_t ret_size = invoke_system_call(
+      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::event ),
+      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
+      std::size( detail::syscall_buffer ),
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
+   );
+}
 
 } // koinos::system
