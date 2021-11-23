@@ -148,6 +148,8 @@ function(koinos_generate_proto)
       set(koinos_generate_proto_SCRIPT ${CMAKE_COMMAND} -E env "PATH=${KOINOS_PROTOBUF_ROOT}/bin:$ENV{PATH}" ${KOINOS_CDT_ROOT}/scripts/koinos_generate_proto.sh)
     endif (WIN32)
 
+    set(koinos_generate_proto_PROTOC_OPTIONS "--proto_path=${KOINOS_CDT_ROOT}/proto")
+
     add_custom_command(
       OUTPUT ${_generated_srcs}
       COMMAND ${koinos_generate_proto_SCRIPT}
