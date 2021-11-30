@@ -21,11 +21,11 @@ namespace koinos::system {
 namespace detail {
    constexpr std::size_t max_hash_size          = 67;
    constexpr std::size_t max_active_data_size   = 1 << 10;
-   constexpr std::size_t max_passive_data_size  = 1 << 10;
    constexpr std::size_t max_argument_size      = 2048;
    constexpr std::size_t max_buffer_size        = 1 << 10;
    constexpr std::size_t max_transaction_length = 512;
    constexpr std::size_t max_contract_size      = 2 << 10;
+   constexpr std::size_t max_contract_abi_size  = 2 << 10;
    constexpr std::size_t max_space_size         = 32;
    constexpr std::size_t max_key_size           = 32;
    constexpr std::size_t zone_size              = 128;
@@ -46,24 +46,23 @@ using get_prev_object_arguments = koinos::chain::get_prev_object_arguments< deta
 using block = koinos::protocol::block<
    detail::max_hash_size,
    detail::max_hash_size,
+   detail::max_hash_size,
    detail::max_active_data_size,
-   detail::max_passive_data_size,
    detail::max_hash_size,
    detail::max_transaction_length,
    detail::max_hash_size,
    detail::max_active_data_size,
-   detail::max_passive_data_size,
    detail::max_hash_size >;
 
 using transaction = koinos::protocol::transaction<
    detail::max_hash_size,
    detail::max_active_data_size,
-   detail::max_passive_data_size,
    detail::max_hash_size >;
 
 using upload_contract_operation = koinos::protocol::upload_contract_operation<
    detail::max_hash_size,
-   detail::max_contract_size >;
+   detail::max_contract_size,
+   detail::max_contract_abi_size >;
 
 using call_contract_operation = koinos::protocol::call_contract_operation<
    detail::max_hash_size,
@@ -90,9 +89,9 @@ inline void print( const std::string& s )
    );
 }
 
-inline bool verify_block_signature( const std::string& digest, const std::string& active_data, const std::string& sig )
+inline bool process_block_signature( const std::string& digest, const std::string& active_data, const std::string& sig )
 {
-   koinos::chain::verify_block_signature_arguments<
+   koinos::chain::process_block_signature_arguments<
       detail::max_hash_size,
       detail::max_active_data_size,
       detail::max_hash_size > args;
@@ -105,7 +104,7 @@ inline bool verify_block_signature( const std::string& digest, const std::string
    args.serialize( buffer );
 
    uint32_t ret_size = invoke_system_call(
-      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::verify_block_signature ),
+      std::underlying_type_t< koinos::protocol::system_call_id >( koinos::protocol::system_call_id::process_block_signature ),
       reinterpret_cast< char* >( detail::syscall_buffer.data() ),
       std::size( detail::syscall_buffer ),
       reinterpret_cast< char* >( buffer.data() ),
@@ -114,7 +113,7 @@ inline bool verify_block_signature( const std::string& digest, const std::string
 
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), ret_size );
 
-   koinos::chain::verify_block_signature_result res;
+   koinos::chain::process_block_signature_result res;
    res.deserialize( rdbuf );
 
    return res.get_value();
@@ -125,18 +124,14 @@ inline void apply_block( const block& b, bool check_passive_data, bool check_blo
    koinos::chain::apply_block_arguments<
       detail::max_hash_size,
       detail::max_hash_size,
+      detail::max_hash_size,
       detail::max_active_data_size,
-      detail::max_passive_data_size,
       detail::max_hash_size,
       detail::max_transaction_length,
       detail::max_hash_size,
       detail::max_active_data_size,
-      detail::max_passive_data_size,
       detail::max_hash_size > args;
    args.mutable_block() = b;
-   args.set_check_passive_data( check_passive_data );
-   args.set_check_block_signature( check_block_signature );
-   args.set_check_transaction_signature( check_transaction_signatures );
 
    koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
    args.serialize( buffer );
@@ -155,7 +150,6 @@ inline void apply_transaction( const transaction& t )
    koinos::chain::apply_transaction_arguments<
       detail::max_hash_size,
       detail::max_active_data_size,
-      detail::max_passive_data_size,
       detail::max_hash_size > args;
    args.mutable_transaction() = t;
 
@@ -175,7 +169,8 @@ inline void apply_upload_contract_operation( const upload_contract_operation& o 
 {
    koinos::chain::apply_upload_contract_operation_arguments<
       detail::max_hash_size,
-      detail::max_contract_size > args;
+      detail::max_contract_size,
+      detail::max_contract_abi_size > args;
    args.mutable_op() = o;
 
    koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
@@ -483,7 +478,7 @@ inline std::string recover_public_key( const std::string& signature_data, const 
 
 inline bool verify_merkle_root( const std::string& root, const std::vector< std::string >& hashes )
 {
-   koinos::chain::verify_block_signature_arguments<
+   koinos::chain::process_block_signature_arguments<
       detail::max_hash_size,
       detail::max_active_data_size,
       detail::max_hash_size > args;
@@ -501,7 +496,7 @@ inline bool verify_merkle_root( const std::string& root, const std::vector< std:
 
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), ret_size );
 
-   koinos::chain::verify_block_signature_result res;
+   koinos::chain::process_block_signature_result res;
    res.deserialize( rdbuf );
 
    return res.get_value();
@@ -513,7 +508,6 @@ inline std::string get_transaction_payer( const transaction& trx )
    koinos::chain::get_transaction_payer_arguments<
       detail::max_hash_size,
       detail::max_active_data_size,
-      detail::max_passive_data_size,
       detail::max_hash_size > args;
    args.mutable_transaction() = trx;
 
@@ -565,7 +559,6 @@ inline uint64_t get_transaction_rc_limit( const transaction& trx )
    koinos::chain::get_transaction_rc_limit_arguments<
       detail::max_hash_size,
       detail::max_active_data_size,
-      detail::max_passive_data_size,
       detail::max_hash_size > args;
    args.mutable_transaction() = trx;
 
