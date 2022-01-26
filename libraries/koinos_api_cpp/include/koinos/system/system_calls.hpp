@@ -69,6 +69,7 @@ using block = koinos::protocol::block<
    detail::max_address_size,        // header.signer
    detail::max_transaction_length,  // transactions length
    detail::max_hash_size,           // transactions.id
+   detail::max_hash_size,           // transactions.header.max_hash_size
    detail::max_hash_size,           // transactions.header.operation_merkle_root
    detail::max_address_size,        // transactions.header.payer
    detail::max_address_size,        // transactions.header.payee
@@ -92,6 +93,7 @@ using block_header = koinos::protocol::block_header<
 
 using transaction = koinos::protocol::transaction<
    detail::max_hash_size,           // id
+   detail::max_hash_size,           // header.chain_id
    detail::max_hash_size,           // header.operation_merkle_root
    detail::max_address_size,        // header.payer
    detail::max_address_size,        // header.payee
@@ -158,6 +160,7 @@ inline void apply_block( const block& b, bool check_passive_data, bool check_blo
       detail::max_transaction_length,
       detail::max_hash_size,
       detail::max_hash_size,
+      detail::max_hash_size,
       detail::max_address_size,
       detail::max_address_size,
       detail::max_operation_length,
@@ -188,6 +191,7 @@ inline void apply_block( const block& b, bool check_passive_data, bool check_blo
 inline void apply_transaction( const transaction& t )
 {
    koinos::chain::apply_transaction_arguments<
+      detail::max_hash_size,
       detail::max_hash_size,
       detail::max_hash_size,
       detail::max_address_size,
