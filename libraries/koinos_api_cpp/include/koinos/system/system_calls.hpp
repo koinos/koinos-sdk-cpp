@@ -4,6 +4,8 @@
 #include <utility>
 #include <vector>
 
+#include <google/protobuf/any.h>
+
 #include <koinos/system/system_calls.hpp>
 
 #include <koinos/protocol/system_call_ids.h>
@@ -20,7 +22,8 @@ namespace koinos::system {
 
 namespace detail {
    constexpr std::size_t max_hash_size          = 67;
-   constexpr std::size_t max_signature_size   = 10 * max_hash_size;
+   constexpr std::size_t max_signatures_length  = 16;
+   constexpr std::size_t max_signature_size     = 2 * max_hash_size;
    constexpr std::size_t max_active_data_size   = 1 << 10;
    constexpr std::size_t max_argument_size      = 2048;
    constexpr std::size_t max_buffer_size        = 1 << 10;
@@ -46,24 +49,27 @@ using get_next_object_arguments = koinos::chain::get_next_object_arguments< deta
 using get_prev_object_arguments = koinos::chain::get_prev_object_arguments< detail::zone_size, detail::max_key_size >;
 
 using block = koinos::protocol::block<
-   detail::max_hash_size,
-   detail::max_hash_size,
-   detail::max_hash_size,
-   detail::max_signature_size,
-   detail::max_address_size,
-   detail::max_transaction_length,
-   detail::max_hash_size,
-   detail::max_hash_size,
-   detail::max_operation_length,
-   detail::max_address_size,
-   detail::max_contract_size,
-   detail::max_contract_size,
-   detail::max_address_size,
-   detail::max_argument_size,
-   detail::max_argument_size,
-   detail::max_address_size,
-   detail::max_signature_size,
-   detail::max_signature_size >;
+   detail::max_hash_size,           // id
+   detail::max_hash_size,           // header.previous
+   detail::max_hash_size,           // header.previous_state_merkle_root
+   detail::max_hash_size,           // header.transaction_merkle_root
+   detail::max_address_size,        // header.signer
+   detail::max_transaction_length,  // transactions length
+   detail::max_hash_size,           // transactions.id
+   detail::max_hash_size,           // transactions.header.operation_merkle_root
+   detail::max_address_size,        // transactions.header.payer
+   detail::max_address_size,        // transactions.header.payee
+   detail::max_operation_length,    // transactions.operations length
+   detail::max_address_size,        // transactions.upload_contract.contract_id
+   detail::max_contract_size,       // transactions.upload_contract.bytecode
+   detail::max_contract_size,       // transactions.upload_contract.abi
+   detail::max_address_size,        // transactions.call_contract.contract_id
+   detail::max_argument_size,       // transactions.call_contract.args
+   detail::max_argument_size,       // transactions.set_system_call.target.system_call_bundle.contract_id
+   detail::max_address_size,        // transactions.set_system_contract.contract_id
+   detail::max_signatures_length,   // transactions.signatures length
+   detail::max_signature_size,      // transactions.signatures
+   detail::max_signature_size >;    // signature
 
 using block_header = koinos::protocol::block_header<
    detail::max_hash_size,
@@ -72,17 +78,20 @@ using block_header = koinos::protocol::block_header<
    detail::max_address_size >;
 
 using transaction = koinos::protocol::transaction<
-   detail::max_hash_size,
-   detail::max_hash_size,
-   detail::max_operation_length,
-   detail::max_address_size,
-   detail::max_contract_size,
-   detail::max_contract_size,
-   detail::max_address_size,
-   detail::max_argument_size,
-   detail::max_argument_size,
-   detail::max_address_size,
-   detail::max_signature_size >;
+   detail::max_hash_size,           // id
+   detail::max_hash_size,           // header.operation_merkle_root
+   detail::max_address_size,        // header.payer
+   detail::max_address_size,        // header.payee
+   detail::max_operation_length,    // operations length
+   detail::max_address_size,        // upload_contract.contract_id
+   detail::max_contract_size,       // upload_contract.bytecode
+   detail::max_contract_size,       // upload_contract.abi
+   detail::max_address_size,        // call_contract.contract_id
+   detail::max_argument_size,       // call_contract.args
+   detail::max_argument_size,       // set_system_call.target.system_call_bundle.contract_id
+   detail::max_address_size,        // set_system_contract.contract_id
+   detail::max_signatures_length,   // signatures length
+   detail::max_signature_size >;    // signatures
 
 using upload_contract_operation = koinos::protocol::upload_contract_operation<
    detail::max_hash_size,
@@ -153,11 +162,13 @@ inline void apply_block( const block& b, bool check_passive_data, bool check_blo
       detail::max_hash_size,
       detail::max_hash_size,
       detail::max_hash_size,
-      detail::max_signature_size,
+      detail::max_hash_size,
       detail::max_address_size,
       detail::max_transaction_length,
       detail::max_hash_size,
       detail::max_hash_size,
+      detail::max_address_size,
+      detail::max_address_size,
       detail::max_operation_length,
       detail::max_address_size,
       detail::max_contract_size,
@@ -166,6 +177,7 @@ inline void apply_block( const block& b, bool check_passive_data, bool check_blo
       detail::max_argument_size,
       detail::max_argument_size,
       detail::max_address_size,
+      detail::max_signatures_length,
       detail::max_signature_size,
       detail::max_signature_size > args;
    args.mutable_block() = b;
@@ -187,6 +199,8 @@ inline void apply_transaction( const transaction& t )
    koinos::chain::apply_transaction_arguments<
       detail::max_hash_size,
       detail::max_hash_size,
+      detail::max_address_size,
+      detail::max_address_size,
       detail::max_operation_length,
       detail::max_address_size,
       detail::max_contract_size,
@@ -195,6 +209,7 @@ inline void apply_transaction( const transaction& t )
       detail::max_argument_size,
       detail::max_argument_size,
       detail::max_address_size,
+      detail::max_signatures_length,
       detail::max_signature_size > args;
    args.mutable_transaction() = t;
 
