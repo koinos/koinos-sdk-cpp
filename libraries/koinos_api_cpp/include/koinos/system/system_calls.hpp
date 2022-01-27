@@ -765,13 +765,14 @@ inline bool verify_merkle_root( const std::string& root, const std::vector< std:
    return res.get_value();
 }
 
-inline bool verify_signature( const std::string& public_key, const std::string& digest, const std::string& signature )
+inline bool verify_signature( chain::dsa type, const std::string& public_key, const std::string& digest, const std::string& signature )
 {
    koinos::chain::verify_signature_arguments<
       detail::max_public_key_size,
       detail::max_signature_size,
       detail::max_hash_size > args;
 
+   args.set_type( type );
    args.mutable_public_key().set( reinterpret_cast< const uint8_t* >( public_key.data() ), public_key.size() );
    args.mutable_digest().set( reinterpret_cast< const uint8_t* >( digest.data() ), digest.size() );
    args.mutable_signature().set( reinterpret_cast< const uint8_t* >( signature.data() ), signature.size() );
@@ -912,9 +913,21 @@ inline void set_contract_result_bytes( const std::string& res )
 template< typename T >
 void set_contract_result( T&& t )
 {
-   std::string obj;
-   t.SerializeToString( &obj );
-   set_contract_result_bytes( obj );
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   t.serialize( buffer );
+
+   koinos::chain::set_contract_result_arguments< detail::max_argument_size > args;
+   args.mutable_value().set( buffer.data(), buffer.get_size() );
+   buffer = koinos::write_buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   args.serialize( buffer );
+
+   invoke_system_call(
+      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::set_contract_result ),
+      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
+      std::size( detail::syscall_buffer ),
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
+   );
 }
 
 inline void exit_contract( uint32_t exit_code )
