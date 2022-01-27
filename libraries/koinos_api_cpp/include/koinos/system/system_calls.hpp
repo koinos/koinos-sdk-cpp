@@ -41,6 +41,7 @@ using Any = koinos::Any< koinos::system::detail::max_field_name_length, koinos::
 
 #include <koinos/system/system_calls.hpp>
 
+#include <koinos/chain/authority.h>
 #include <koinos/chain/system_calls.h>
 #include <koinos/chain/system_call_ids.h>
 #include <koinos/chain/value.h>
@@ -997,6 +998,7 @@ inline std::pair< std::string, koinos::chain::privilege > get_caller()
 inline void require_authority( const std::string& account )
 {
    koinos::chain::require_authority_arguments< detail::max_hash_size > args;
+   args.set_type( koinos::chain::authorization_type::contract_call );
    args.mutable_account().set( reinterpret_cast< const uint8_t* >( account.data() ), account.size() );
 
    koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
