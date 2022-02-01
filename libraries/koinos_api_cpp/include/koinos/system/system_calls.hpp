@@ -848,29 +848,6 @@ inline uint32_t get_entry_point()
    return res.get_value();
 }
 
-inline uint32_t get_contract_arguments_size()
-{
-   koinos::chain::get_contract_arguments_size_arguments args;
-
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   args.serialize( buffer );
-
-   uint32_t ret_size = invoke_system_call(
-      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::get_contract_arguments_size ),
-      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
-      std::size( detail::syscall_buffer ),
-      reinterpret_cast< char* >( buffer.data() ),
-      buffer.get_size()
-   );
-
-   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), ret_size );
-
-   koinos::chain::get_contract_arguments_size_result res;
-   res.deserialize( rdbuf );
-
-   return res.get_value();
-}
-
 inline std::string get_contract_arguments()
 {
    koinos::chain::get_contract_arguments_arguments args;
