@@ -1,6 +1,7 @@
 file(GLOB HEADERS "include/koinos/*.hpp" "include/koinos/system/*.hpp")
 add_library( koinos_api_cpp
              koinos_api_cpp.cpp
+             crypto.cpp
              ${HEADERS} )
 target_include_directories( koinos_api_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include )
 target_link_libraries(koinos_api_cpp koinos_proto_embedded)

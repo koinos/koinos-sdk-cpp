@@ -29,6 +29,7 @@ constexpr std::size_t max_impacted_size      = 10;
 constexpr std::size_t max_field_name_length  = 128;
 constexpr std::size_t max_field_size         = max_signatures_length * max_signature_size;
 constexpr std::size_t max_public_key_size    = 33;
+constexpr std::size_t max_nonce_size         = max_hash_size;
 static std::array< uint8_t, max_buffer_size > syscall_buffer;
 
 } // koinos::system::detail
@@ -70,7 +71,8 @@ using block = koinos::protocol::block<
    detail::max_address_size,        // header.signer
    detail::max_transaction_length,  // transactions length
    detail::max_hash_size,           // transactions.id
-   detail::max_hash_size,           // transactions.header.max_hash_size
+   detail::max_hash_size,           // transactions.header.chain_id
+   detail::max_nonce_size,          // transactions.header.nonce
    detail::max_hash_size,           // transactions.header.operation_merkle_root
    detail::max_address_size,        // transactions.header.payer
    detail::max_address_size,        // transactions.header.payee
@@ -95,6 +97,7 @@ using block_header = koinos::protocol::block_header<
 using transaction = koinos::protocol::transaction<
    detail::max_hash_size,           // id
    detail::max_hash_size,           // header.chain_id
+   detail::max_nonce_size,          // header.nonce
    detail::max_hash_size,           // header.operation_merkle_root
    detail::max_address_size,        // header.payer
    detail::max_address_size,        // header.payee
@@ -161,6 +164,7 @@ inline void apply_block( const block& b, bool check_passive_data, bool check_blo
       detail::max_transaction_length,
       detail::max_hash_size,
       detail::max_hash_size,
+      detail::max_nonce_size,
       detail::max_hash_size,
       detail::max_address_size,
       detail::max_address_size,
@@ -194,6 +198,7 @@ inline void apply_transaction( const transaction& t )
    koinos::chain::apply_transaction_arguments<
       detail::max_hash_size,
       detail::max_hash_size,
+      detail::max_nonce_size,
       detail::max_hash_size,
       detail::max_address_size,
       detail::max_address_size,
@@ -400,7 +405,7 @@ inline uint64_t get_last_irreversible_block()
    return res.get_value();
 }
 
-inline uint64_t get_account_nonce( const std::string& account )
+inline std::string get_account_nonce( const std::string& account )
 {
    koinos::chain::get_account_nonce_arguments< detail::max_address_size > args;
 
@@ -417,33 +422,26 @@ inline uint64_t get_account_nonce( const std::string& account )
 
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), ret_size );
 
-   koinos::chain::get_account_nonce_result res;
+   koinos::chain::get_account_nonce_result< detail::max_nonce_size > res;
    res.deserialize( rdbuf );
 
-   return res.get_value();
+   return std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() );
 }
 
-inline bool authorize_system( koinos::chain::system_authorization_type type )
+inline void require_system_authority( koinos::chain::system_authorization_type type )
 {
-   koinos::chain::authorize_system_arguments args;
+   koinos::chain::require_system_authority_arguments args;
 
    koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
    args.serialize( buffer );
 
    uint32_t ret_size = invoke_system_call(
-      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::authorize_system ),
+      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::require_system_authority ),
       reinterpret_cast< char* >( detail::syscall_buffer.data() ),
       std::size( detail::syscall_buffer ),
       reinterpret_cast< char* >( buffer.data() ),
       buffer.get_size()
    );
-
-   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), ret_size );
-
-   koinos::chain::authorize_system_result res;
-   res.deserialize( rdbuf );
-
-   return res.get_value();
 }
 
 // Resource Subsystem
@@ -707,9 +705,10 @@ inline std::string hash( uint64_t code, const std::string& obj, uint64_t size = 
    return std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() );
 }
 
-inline std::string recover_public_key( const std::string& signature, const std::string& digest )
+inline std::string recover_public_key( const std::string& signature, const std::string& digest, koinos::chain::dsa algo = koinos::chain::dsa::ecdsa_secp256k1 )
 {
    koinos::chain::recover_public_key_arguments< detail::max_hash_size, detail::max_hash_size > args;
+   args.set_type( algo );
    args.mutable_digest().set( reinterpret_cast< const uint8_t* >( digest.data() ), digest.size() );
    args.mutable_signature().set( reinterpret_cast< const uint8_t* >( signature.data() ), signature.size() );
 
