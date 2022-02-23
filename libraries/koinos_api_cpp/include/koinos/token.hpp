@@ -8,13 +8,13 @@ namespace detail {
 
 enum entries : uint32_t
 {
-   name_entry         = 0x76ea4297,
-   symbol_entry       = 0x7e794b24,
-   decimals_entry     = 0x59dc15ce,
-   total_supply_entry = 0xcf2e8212,
-   balance_of_entry   = 0x15619248,
-   transfer_entry     = 0x62efa292,
-   mint_entry         = 0xc2f82bdc
+   name_entry         = 0x82a3537f,
+   symbol_entry       = 0xb76a7ca1,
+   decimals_entry     = 0xee80fd2f,
+   total_supply_entry = 0xb0da3934,
+   balance_of_entry   = 0x5c721497,
+   transfer_entry     = 0x27f576ca,
+   mint_entry         = 0xdc6f17bb
 };
 
 constexpr std::size_t max_address_size = 25;

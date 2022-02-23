@@ -480,7 +480,7 @@ inline uint64_t get_account_rc( const std::string& account )
 
 namespace detail {
 
-inline bool put_object( const object_space& space, const std::string& key, const std::string& obj )
+inline int32_t put_object( const object_space& space, const std::string& key, const std::string& obj )
 {
    if ( key.size() > detail::max_key_size )
    {
@@ -548,7 +548,7 @@ inline std::string get_object( const object_space& space, const std::string& key
 } // detail
 
 template< typename T >
-bool put_object( const object_space& space, const std::string& key, const T& value )
+int32_t put_object( const object_space& space, const std::string& key, const T& value )
 {
    std::array< uint8_t, detail::max_argument_size > buf;
    koinos::write_buffer buffer( buf.data(), buf.size() );
