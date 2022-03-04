@@ -7,4 +7,4 @@ fi
 
 echo "$DOCKER_PASSWORD" | docker login -u $DOCKER_USERNAME --password-stdin
 
-docker build . -t koinos/koinos-cdt:$TAG
+docker build . -t koinos/koinos-sdk:$TAG
