@@ -59,6 +59,7 @@ using object_space = koinos::chain::object_space< detail::zone_size >;
 
 using put_object_arguments = koinos::chain::put_object_arguments< detail::zone_size, detail::max_key_size, detail::max_argument_size >;
 using get_object_arguments = koinos::chain::get_object_arguments< detail::zone_size, detail::max_key_size >;
+using remove_object_arguments = koinos::chain::remove_object_arguments< detail::zone_size, detail::max_key_size >;
 using get_next_object_arguments = koinos::chain::get_next_object_arguments< detail::zone_size, detail::max_key_size >;
 using get_prev_object_arguments = koinos::chain::get_prev_object_arguments< detail::zone_size, detail::max_key_size >;
 using value_type = koinos::chain::value_type< detail::max_field_size, detail::max_field_size >;
