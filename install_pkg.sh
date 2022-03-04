@@ -26,7 +26,6 @@ done
 
 mkdir -p $install_dir
 
-tar xfv build/koinos-cdt.tar.gz -C $install_dir
+tar xfv build/koinos-sdk.tar.gz -C $install_dir
 
-echo "Koinos CDT installed to $install_dir"
-
+echo "Koinos SDK installed to $install_dir"

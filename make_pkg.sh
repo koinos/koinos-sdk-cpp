@@ -8,13 +8,12 @@ mkdir build/
 
 cd build
 
-mkdir koinos-cdt
+mkdir koinos-sdk
 
-cmake -DCMAKE_INSTALL_PREFIX=`pwd`/koinos-cdt ..
+cmake -DCMAKE_INSTALL_PREFIX=`pwd`/koinos-sdk ..
 
 make
 
 make install
 
-tar -czvf koinos-cdt.tar.gz koinos-cdt
-
+tar -czvf koinos-sdk.tar.gz koinos-sdk

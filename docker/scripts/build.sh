@@ -13,7 +13,7 @@ find . -name \*.hpp   -exec cp {} /tmp/project/src \;
 cd /tmp/project
 mkdir build
 cd build
-cmake -DCMAKE_TOOLCHAIN_FILE=${KOINOS_CDT_ROOT}/cmake/koinos-wasm-toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake -DCMAKE_TOOLCHAIN_FILE=${KOINOS_SDK_ROOT}/cmake/koinos-wasm-toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
 make contract
 
 # copy build artifacts

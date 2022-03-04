@@ -4,7 +4,7 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR wasm)
 
 set(KOINOS_WASI_SDK_ROOT $ENV{KOINOS_WASI_SDK_ROOT} CACHE FILEPATH "The root directory of the WASI SDK")
-set(KOINOS_CDT_ROOT $ENV{KOINOS_CDT_ROOT} CACHE FILEPATH "The root directory of the Koinos Contract Development Toolkit")
+set(KOINOS_SDK_ROOT $ENV{KOINOS_SDK_ROOT} CACHE FILEPATH "The root directory of the Koinos Contract Development Toolkit")
 set(KOINOS_PROTOBUF_ROOT $ENV{KOINOS_PROTOBUF_ROOT} CACHE FILEPATH "The root of the Protocol Buffer installation")
 set(KOINOS_EMBEDDED_PROTO_ROOT $ENV{KOINOS_EMBEDDED_PROTO_ROOT} CACHE FILEPATH "The root of the Embedded Proto repository")
 
@@ -28,7 +28,7 @@ set(CMAKE_LINKER ${KOINOS_WASI_SDK_ROOT}/bin/wasm-ld${KOINOS_WASI_HOST_EXE_SUFFI
 
 set(CMAKE_SYSROOT ${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot)
 
-list(APPEND CMAKE_MODULE_PATH "${KOINOS_CDT_ROOT}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${KOINOS_SDK_ROOT}/cmake")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -39,7 +39,7 @@ add_compile_options(
   -flto
   -I${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot/include
   -I${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot/include/c++/v1
-  -I${KOINOS_CDT_ROOT}/include)
+  -I${KOINOS_SDK_ROOT}/include)
 
 add_link_options(
   --no-entry
@@ -49,7 +49,7 @@ add_link_options(
   ${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot/lib/wasm32-wasi/crt1.o
   -L${KOINOS_WASI_SDK_ROOT}/share/wasi-sysroot/lib/wasm32-wasi
   -L${KOINOS_WASI_SDK_ROOT}/lib/clang/11.0.0/lib/wasi
-  -L${KOINOS_CDT_ROOT}/lib)
+  -L${KOINOS_SDK_ROOT}/lib)
 
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
@@ -57,9 +57,8 @@ set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET>
 set(CMAKE_EXECUTABLE_SUFFIX_C ".wasm")
 set(CMAKE_EXECUTABLE_SUFFIX_CXX ".wasm")
 
-set(CMAKE_FIND_ROOT_PATH ${KOINOS_CDT_ROOT})
+set(CMAKE_FIND_ROOT_PATH ${KOINOS_SDK_ROOT})
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
-

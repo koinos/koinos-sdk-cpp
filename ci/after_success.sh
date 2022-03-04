@@ -6,4 +6,4 @@ if [ "$TAG" = "master" ]; then
 fi
 
 echo "$DOCKER_PASSWORD" | docker login -u $DOCKER_USERNAME --password-stdin
-docker push koinos/koinos-cdt:$TAG
+docker push koinos/koinos-sdk:$TAG
