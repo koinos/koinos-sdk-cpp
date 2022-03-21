@@ -14,7 +14,8 @@ enum entries : uint32_t
    total_supply_entry = 0xb0da3934,
    balance_of_entry   = 0x5c721497,
    transfer_entry     = 0x27f576ca,
-   mint_entry         = 0xdc6f17bb
+   mint_entry         = 0xdc6f17bb,
+   burn_entry         = 0x859facc5
 };
 
 constexpr std::size_t max_address_size = 25;
@@ -112,6 +113,22 @@ class token
          args.serialize( wbuf );
 
          auto retstr = system::call_contract( _contract_address, detail::entries::mint_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
+         koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
+         koinos::contracts::token::mint_result res;
+         res.deserialize( buf );
+         return res.get_value();
+      }
+
+      inline bool burn( const std::string& from, const uint64_t& value )
+      {
+         koinos::contracts::token::burn_arguments< detail::max_address_size > args;
+         std::array< uint8_t, 1024 > buffer;
+         args.mutable_from().set( const_cast< uint8_t* >( reinterpret_cast< const uint8_t* >( from.data() ) ), from.size() );
+         args.mutable_value() = value;
+         koinos::write_buffer wbuf( buffer.data(), buffer.size() );
+         args.serialize( wbuf );
+
+         auto retstr = system::call_contract( _contract_address, detail::entries::burn_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
          koinos::read_buffer buf( (uint8_t*)retstr.data(), retstr.size() );
          koinos::contracts::token::mint_result res;
          res.deserialize( buf );
