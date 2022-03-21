@@ -118,6 +118,15 @@ using transaction = koinos::protocol::transaction<
    detail::max_signatures_length,   // signatures length
    detail::max_signature_size >;    // signatures
 
+using operation = koinos::protocol::operation<
+   system::detail::max_address_size,        // upload_contract.contract_id
+   system::detail::max_contract_size,       // upload_contract.bytecode
+   system::detail::max_contract_size,       // upload_contract.abi
+   system::detail::max_address_size,        // call_contract.contract_id
+   system::detail::max_argument_size,       // call_contract.args
+   system::detail::max_argument_size,       // set_system_call.target.system_call_bundle.contract_id
+   system::detail::max_address_size >;      // set_system_contract.contract_id
+
 using upload_contract_operation = koinos::protocol::upload_contract_operation<
    detail::max_hash_size,
    detail::max_contract_size,
