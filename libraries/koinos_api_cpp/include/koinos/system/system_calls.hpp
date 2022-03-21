@@ -71,6 +71,8 @@ using block = koinos::protocol::block<
    detail::max_hash_size,           // header.previous_state_merkle_root
    detail::max_hash_size,           // header.transaction_merkle_root
    detail::max_address_size,        // header.signer
+   detail::max_proposal_length,     // header.approved_proposals length
+   detail::max_hash_size,           // header.approved_proposals
    detail::max_transaction_length,  // transactions length
    detail::max_hash_size,           // transactions.id
    detail::max_hash_size,           // transactions.header.chain_id
@@ -165,6 +167,8 @@ inline void apply_block( const block& b, bool check_passive_data, bool check_blo
       detail::max_hash_size,
       detail::max_hash_size,
       detail::max_address_size,
+      detail::max_proposal_length,
+      detail::max_hash_size,
       detail::max_transaction_length,
       detail::max_hash_size,
       detail::max_hash_size,
@@ -313,6 +317,8 @@ inline bool process_block_signature( const std::string& digest, const block_head
       detail::max_hash_size,
       detail::max_hash_size,
       detail::max_address_size,
+      detail::max_proposal_length,
+      detail::max_hash_size,
       detail::max_signature_size > args;
 
    args.mutable_digest().set( reinterpret_cast< const uint8_t* >( digest.data() ), digest.size() );
