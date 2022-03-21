@@ -30,6 +30,7 @@ constexpr std::size_t max_field_name_length  = 128;
 constexpr std::size_t max_field_size         = max_signatures_length * max_signature_size;
 constexpr std::size_t max_public_key_size    = 33;
 constexpr std::size_t max_nonce_size         = max_hash_size;
+constexpr std::size_t max_proposal_length    = 32;
 static std::array< uint8_t, max_buffer_size > syscall_buffer;
 
 } // koinos::system::detail
@@ -93,7 +94,9 @@ using block_header = koinos::protocol::block_header<
    detail::max_hash_size,
    detail::max_hash_size,
    detail::max_hash_size,
-   detail::max_address_size >;
+   detail::max_address_size,
+   detail::max_proposal_length,
+   detail::max_hash_size >;
 
 using transaction = koinos::protocol::transaction<
    detail::max_hash_size,           // id
