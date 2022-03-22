@@ -564,31 +564,6 @@ inline std::string get_object( const object_space& space, const std::string& key
    return std::string( reinterpret_cast< const char* >( res.get_value().get_value().get_const() ), res.get_value().get_value().get_length() );
 }
 
-inline void remove_object( const object_space& space, const std::string& key )
-{
-   if ( key.size() > detail::max_key_size )
-   {
-      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
-      log( err_msg );
-      exit_contract( 1 );
-   }
-
-   remove_object_arguments args;
-   args.mutable_space() = space;
-   args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
-
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   args.serialize( buffer );
-
-   uint32_t ret_size = invoke_system_call(
-      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::remove_object ),
-      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
-      std::size( detail::syscall_buffer ),
-      reinterpret_cast< char* >( buffer.data() ),
-      buffer.get_size()
-   );
-}
-
 } // detail
 
 template< typename T >
@@ -612,6 +587,31 @@ bool get_object( const object_space& space, const std::string& key, T& t )
    }
 
    return false;
+}
+
+inline void remove_object( const object_space& space, const std::string& key )
+{
+   if ( key.size() > detail::max_key_size )
+   {
+      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
+      log( err_msg );
+      exit_contract( 1 );
+   }
+
+   remove_object_arguments args;
+   args.mutable_space() = space;
+   args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   args.serialize( buffer );
+
+   uint32_t ret_size = invoke_system_call(
+      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::remove_object ),
+      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
+      std::size( detail::syscall_buffer ),
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
+   );
 }
 
 inline std::string get_next_object( const object_space& space, const std::string& key, uint32_t object_size_hint = 0 )
