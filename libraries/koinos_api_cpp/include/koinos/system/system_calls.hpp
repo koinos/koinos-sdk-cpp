@@ -14,13 +14,13 @@ constexpr std::size_t max_signatures_length  = 16;
 constexpr std::size_t max_signature_size     = 2 * max_hash_size;
 constexpr std::size_t max_active_data_size   = 1 << 10;
 constexpr std::size_t max_argument_size      = 2048;
-constexpr std::size_t max_buffer_size        = 1 << 10;
+constexpr std::size_t max_buffer_size        = 1 << 12; // 4 K
 constexpr std::size_t max_transaction_length = 512;
 constexpr std::size_t max_operation_length   = 64;
 constexpr std::size_t max_contract_size      = 2 << 10;
 constexpr std::size_t max_contract_abi_size  = 2 << 10;
-constexpr std::size_t max_space_size         = 32;
-constexpr std::size_t max_key_size           = 32;
+constexpr std::size_t max_space_size         = 40;
+constexpr std::size_t max_key_size           = 40;
 constexpr std::size_t zone_size              = 128;
 constexpr std::size_t max_event_name_size    = 32;
 constexpr std::size_t max_event_size         = 1024;
@@ -31,6 +31,7 @@ constexpr std::size_t max_field_size         = max_signatures_length * max_signa
 constexpr std::size_t max_public_key_size    = 33;
 constexpr std::size_t max_nonce_size         = max_hash_size;
 constexpr std::size_t max_proposal_length    = 32;
+constexpr std::size_t max_vrf_proof_size     = 81;
 static std::array< uint8_t, max_buffer_size > syscall_buffer;
 
 } // koinos::system::detail
@@ -501,13 +502,6 @@ namespace detail {
 
 inline int32_t put_object( const object_space& space, const std::string& key, const std::string& obj )
 {
-   if ( key.size() > detail::max_key_size )
-   {
-      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
-      log( err_msg );
-      exit_contract( 1 );
-   }
-
    put_object_arguments args;
    args.mutable_space() = space;
    args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
@@ -534,13 +528,6 @@ inline int32_t put_object( const object_space& space, const std::string& key, co
 
 inline std::string get_object( const object_space& space, const std::string& key, uint32_t object_size_hint = 0 )
 {
-   if ( key.size() > detail::max_key_size )
-   {
-      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
-      log( err_msg );
-      exit_contract( 1 );
-   }
-
    get_object_arguments args;
    args.mutable_space() = space;
    args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
@@ -591,13 +578,6 @@ bool get_object( const object_space& space, const std::string& key, T& t )
 
 inline void remove_object( const object_space& space, const std::string& key )
 {
-   if ( key.size() > detail::max_key_size )
-   {
-      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
-      log( err_msg );
-      exit_contract( 1 );
-   }
-
    remove_object_arguments args;
    args.mutable_space() = space;
    args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
@@ -840,6 +820,40 @@ inline bool verify_signature( chain::dsa type, const std::string& public_key, co
    return res.get_value();
 }
 
+inline bool verify_vrf_proof( chain::dsa type, const std::string& public_key, const std::string& proof, const std::string& hash, const std::string& message )
+{
+   koinos::chain::verify_vrf_proof_arguments<
+      detail::max_public_key_size,
+      detail::max_vrf_proof_size,
+      detail::max_hash_size,
+      detail::max_argument_size
+   > args;
+
+   args.set_type( type );
+   args.mutable_public_key().set( reinterpret_cast< const uint8_t* >( public_key.data() ), public_key.size() );
+   args.mutable_proof().set( reinterpret_cast< const uint8_t* >( proof.data() ), proof.size() );
+   args.mutable_hash().set( reinterpret_cast< const uint8_t* >( hash.data() ), hash.size() );
+   args.mutable_message().set( reinterpret_cast< const uint8_t* >( message.data() ), message.size() );
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   args.serialize( buffer );
+
+   uint32_t ret_size = invoke_system_call(
+      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::verify_vrf_proof ),
+      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
+      std::size( detail::syscall_buffer ),
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
+   );
+
+   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), ret_size );
+
+   koinos::chain::verify_vrf_proof_result res;
+   res.deserialize( rdbuf );
+
+   return res.get_value();
+}
+
 // Contract Management
 
 inline std::string call_contract( const std::string& contract_id, uint32_t entry_point, const std::string& contract_args )
@@ -886,7 +900,7 @@ inline uint32_t get_entry_point()
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), ret_size );
 
    koinos::chain::get_entry_point_result res;
-   res.deserialize( rdbuf );
+   //res.deserialize( rdbuf );
 
    return res.get_value();
 }
