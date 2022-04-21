@@ -30,6 +30,7 @@ constexpr std::size_t max_field_name_length  = 128;
 constexpr std::size_t max_field_size         = max_signatures_length * max_signature_size;
 constexpr std::size_t max_public_key_size    = 33;
 constexpr std::size_t max_nonce_size         = max_hash_size;
+constexpr std::size_t max_proposal_length    = 32;
 static std::array< uint8_t, max_buffer_size > syscall_buffer;
 
 } // koinos::system::detail
@@ -70,6 +71,8 @@ using block = koinos::protocol::block<
    detail::max_hash_size,           // header.previous_state_merkle_root
    detail::max_hash_size,           // header.transaction_merkle_root
    detail::max_address_size,        // header.signer
+   detail::max_proposal_length,     // header.approved_proposals length
+   detail::max_hash_size,           // header.approved_proposals
    detail::max_transaction_length,  // transactions length
    detail::max_hash_size,           // transactions.id
    detail::max_hash_size,           // transactions.header.chain_id
@@ -93,7 +96,9 @@ using block_header = koinos::protocol::block_header<
    detail::max_hash_size,
    detail::max_hash_size,
    detail::max_hash_size,
-   detail::max_address_size >;
+   detail::max_address_size,
+   detail::max_proposal_length,
+   detail::max_hash_size >;
 
 using transaction = koinos::protocol::transaction<
    detail::max_hash_size,           // id
@@ -112,6 +117,15 @@ using transaction = koinos::protocol::transaction<
    detail::max_address_size,        // set_system_contract.contract_id
    detail::max_signatures_length,   // signatures length
    detail::max_signature_size >;    // signatures
+
+using operation = koinos::protocol::operation<
+   system::detail::max_address_size,        // upload_contract.contract_id
+   system::detail::max_contract_size,       // upload_contract.bytecode
+   system::detail::max_contract_size,       // upload_contract.abi
+   system::detail::max_address_size,        // call_contract.contract_id
+   system::detail::max_argument_size,       // call_contract.args
+   system::detail::max_argument_size,       // set_system_call.target.system_call_bundle.contract_id
+   system::detail::max_address_size >;      // set_system_contract.contract_id
 
 using upload_contract_operation = koinos::protocol::upload_contract_operation<
    detail::max_hash_size,
@@ -162,6 +176,8 @@ inline void apply_block( const block& b, bool check_passive_data, bool check_blo
       detail::max_hash_size,
       detail::max_hash_size,
       detail::max_address_size,
+      detail::max_proposal_length,
+      detail::max_hash_size,
       detail::max_transaction_length,
       detail::max_hash_size,
       detail::max_hash_size,
@@ -310,6 +326,8 @@ inline bool process_block_signature( const std::string& digest, const block_head
       detail::max_hash_size,
       detail::max_hash_size,
       detail::max_address_size,
+      detail::max_proposal_length,
+      detail::max_hash_size,
       detail::max_signature_size > args;
 
    args.mutable_digest().set( reinterpret_cast< const uint8_t* >( digest.data() ), digest.size() );
@@ -546,31 +564,6 @@ inline std::string get_object( const object_space& space, const std::string& key
    return std::string( reinterpret_cast< const char* >( res.get_value().get_value().get_const() ), res.get_value().get_value().get_length() );
 }
 
-inline void remove_object( const object_space& space, const std::string& key )
-{
-   if ( key.size() > detail::max_key_size )
-   {
-      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
-      log( err_msg );
-      exit_contract( 1 );
-   }
-
-   remove_object_arguments args;
-   args.mutable_space() = space;
-   args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
-
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   args.serialize( buffer );
-
-   uint32_t ret_size = invoke_system_call(
-      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::remove_object ),
-      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
-      std::size( detail::syscall_buffer ),
-      reinterpret_cast< char* >( buffer.data() ),
-      buffer.get_size()
-   );
-}
-
 } // detail
 
 template< typename T >
@@ -594,6 +587,31 @@ bool get_object( const object_space& space, const std::string& key, T& t )
    }
 
    return false;
+}
+
+inline void remove_object( const object_space& space, const std::string& key )
+{
+   if ( key.size() > detail::max_key_size )
+   {
+      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
+      log( err_msg );
+      exit_contract( 1 );
+   }
+
+   remove_object_arguments args;
+   args.mutable_space() = space;
+   args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   args.serialize( buffer );
+
+   uint32_t ret_size = invoke_system_call(
+      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::remove_object ),
+      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
+      std::size( detail::syscall_buffer ),
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size()
+   );
 }
 
 inline std::string get_next_object( const object_space& space, const std::string& key, uint32_t object_size_hint = 0 )
