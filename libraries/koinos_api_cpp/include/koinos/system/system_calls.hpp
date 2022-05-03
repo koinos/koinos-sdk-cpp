@@ -929,6 +929,34 @@ inline std::string get_arguments()
    return std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() );
 }
 
+inline void revert( const std::string& msg = "" )
+{
+   result r;
+   r.set_code( 1 );
+   r.mutable_value().set( reinterpret_cast< const uint8_t* >( msg.data() ), msg.size() );
+   exit( r );
+}
+
+inline void exit( int32_t code )
+{
+   result r;
+   r.set_code( code );
+   exit( r );
+}
+
+inline void exit( int32_t code, const ::EmbeddedProto::MessageInterface& msg )
+{
+   result r;
+   r.set_code( code );
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   msg.serialize( buffer );
+
+   r.mutable_value().set( buffer.data(), buffer.get_size() );
+
+   exit( r );
+}
+
 inline void exit( const result& r )
 {
    exit_arguments args;
