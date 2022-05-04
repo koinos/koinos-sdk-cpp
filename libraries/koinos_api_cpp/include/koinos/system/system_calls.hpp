@@ -883,30 +883,7 @@ inline std::pair< int32_t, std::string > call( const std::string& id, uint32_t e
    return std::make_pair( retval, std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() ) );
 }
 
-inline uint32_t get_entry_point()
-{
-   koinos::chain::get_entry_point_arguments args;
-
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   args.serialize( buffer );
-
-   invoke_system_call(
-      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::get_entry_point ),
-      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
-      std::size( detail::syscall_buffer ),
-      reinterpret_cast< char* >( buffer.data() ),
-      buffer.get_size()
-   );
-
-   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-
-   koinos::chain::get_entry_point_result res;
-   res.deserialize( rdbuf );
-
-   return res.get_value();
-}
-
-inline std::string get_arguments()
+inline std::pair< uint32_t, std::string > get_arguments()
 {
    koinos::chain::get_arguments_arguments args;
 
@@ -926,7 +903,7 @@ inline std::string get_arguments()
    koinos::chain::get_arguments_result< detail::max_argument_size > res;
    res.deserialize( rdbuf );
 
-   return std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() );
+   return std::make_pair( res.get_value().entry_point(), std::string( reinterpret_cast< const char* >( res.get_value().get_arguments().get_const() ), res.get_value().get_arguments().get_length() ) );
 }
 
 inline void revert( const std::string& msg = "" )

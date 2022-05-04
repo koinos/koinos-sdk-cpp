@@ -5,7 +5,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-noreturn"
 __attribute__((__noreturn__))
-void koinos_exit( uint32_t rval )
+void koinos_exit( int32_t rval )
 {
    // We are hand generating an exit_args message
    char rbuf[4];
