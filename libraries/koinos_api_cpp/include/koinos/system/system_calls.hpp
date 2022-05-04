@@ -857,7 +857,7 @@ inline bool verify_signature( chain::dsa type, const std::string& public_key, co
 
 // Contract Management
 
-inline result call( const std::string& id, uint32_t entry_point, const std::string& arguments )
+inline std::pair< int32_t, std::string > call( const std::string& id, uint32_t entry_point, const std::string& arguments )
 {
    koinos::chain::call_arguments< detail::max_hash_size, detail::max_argument_size > args;
    args.mutable_contract_id().set( reinterpret_cast< const uint8_t* >( id.data() ), id.size() );
@@ -867,7 +867,7 @@ inline result call( const std::string& id, uint32_t entry_point, const std::stri
    koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
    args.serialize( buffer );
 
-   invoke_system_call(
+   int32_t retval = invoke_system_call(
       std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::call ),
       reinterpret_cast< char* >( detail::syscall_buffer.data() ),
       std::size( detail::syscall_buffer ),
@@ -880,7 +880,7 @@ inline result call( const std::string& id, uint32_t entry_point, const std::stri
    koinos::chain::call_result< detail::max_argument_size > res;
    res.deserialize( rdbuf );
 
-   return res.get_value();
+   return std::make_pair( retval, std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() ) );
 }
 
 inline uint32_t get_entry_point()
