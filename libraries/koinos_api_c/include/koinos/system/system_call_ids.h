@@ -1,3 +1,3 @@
 #pragma once
 
-#define KOINOS_SYSTEM_CALL_EXIT 602
+#define KOINOS_SYSTEM_CALL_EXIT 601
