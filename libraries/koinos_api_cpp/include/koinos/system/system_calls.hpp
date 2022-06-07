@@ -1010,6 +1010,9 @@ inline std::pair< int32_t, std::string > call( const std::string& id, uint32_t e
       &bytes_written
    );
 
+   if ( retval )
+      return std::make_pair( retval, std::string( reinterpret_cast< const char* >( buffer.data() ), bytes_written ) );
+
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
 
    koinos::chain::call_result< detail::max_argument_size > res;
