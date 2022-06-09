@@ -142,6 +142,11 @@ using call_contract_operation = koinos::protocol::call_contract_operation<
 using set_system_call_operation = koinos::protocol::set_system_call_operation< detail::max_argument_size >;
 using set_system_contract_operation = koinos::protocol::set_system_contract_operation< detail::max_address_size >;
 using head_info = koinos::chain::head_info< detail::max_hash_size, detail::max_hash_size >;
+using error_info = koinos::chain::error_info< detail::max_argument_size >;
+
+namespace detail {
+   static error_info einfo;
+} // detail
 
 inline void log( const std::string& );
 inline void exit( const result& r );
@@ -1010,15 +1015,24 @@ inline std::pair< int32_t, std::string > call( const std::string& id, uint32_t e
       &bytes_written
    );
 
-   if ( retval )
-      return std::make_pair( retval, std::string( reinterpret_cast< const char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      detail::einfo.deserialize( rdbuf );
+
+      return std::make_pair( retval, std::string() );
+   }
 
    koinos::chain::call_result< detail::max_argument_size > res;
    res.deserialize( rdbuf );
 
    return std::make_pair( retval, std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() ) );
+}
+
+inline const error_info& get_error_info()
+{
+   return detail::einfo;
 }
 
 inline std::pair< uint32_t, std::string > get_arguments()
@@ -1052,9 +1066,16 @@ inline std::pair< uint32_t, std::string > get_arguments()
 
 inline void revert( const std::string& msg )
 {
+   std::array< uint8_t, detail::max_argument_size > buf;
+   koinos::write_buffer wbuf( buf.data(), buf.size() );
+
+   chain::error_info< detail::max_argument_size > ei;
+   ei.mutable_message().set( reinterpret_cast< const char* >( msg.data() ), msg.size() );
+   ei.serialize( wbuf );
+
    result r;
    r.set_code( 1 );
-   r.mutable_value().set( reinterpret_cast< const uint8_t* >( msg.data() ), msg.size() );
+   r.mutable_value().set( buf.data(), wbuf.get_size() );
    exit( r );
 }
 
