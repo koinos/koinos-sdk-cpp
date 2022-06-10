@@ -65,8 +65,8 @@ using remove_object_arguments = koinos::chain::remove_object_arguments< detail::
 using get_next_object_arguments = koinos::chain::get_next_object_arguments< detail::zone_size, detail::max_key_size >;
 using get_prev_object_arguments = koinos::chain::get_prev_object_arguments< detail::zone_size, detail::max_key_size >;
 using value_type = koinos::chain::value_type< detail::max_field_size, detail::max_field_size >;
-using result = koinos::chain::result< detail::max_argument_size >;
-using exit_arguments = koinos::chain::exit_arguments< detail::max_argument_size >;
+using result = koinos::chain::result< detail::max_argument_size, detail::max_argument_size >;
+using exit_arguments = koinos::chain::exit_arguments< detail::max_argument_size, detail::max_argument_size >;
 
 using block = koinos::protocol::block<
    detail::max_hash_size,           // id
@@ -142,14 +142,10 @@ using call_contract_operation = koinos::protocol::call_contract_operation<
 using set_system_call_operation = koinos::protocol::set_system_call_operation< detail::max_argument_size >;
 using set_system_contract_operation = koinos::protocol::set_system_contract_operation< detail::max_address_size >;
 using head_info = koinos::chain::head_info< detail::max_hash_size, detail::max_hash_size >;
-using error_info = koinos::chain::error_info< detail::max_argument_size >;
-
-namespace detail {
-   static error_info einfo;
-} // detail
+using error_data = koinos::chain::error_data< detail::max_argument_size >;
 
 inline void log( const std::string& );
-inline void exit( const result& r );
+inline void exit(  int32_t code, const result& r = result() );
 inline void revert( const std::string& msg = "" );
 
 // General Blockchain Management
@@ -585,12 +581,7 @@ inline void put_object( const object_space& space, const std::string& key, const
 {
    if ( key.size() > detail::max_key_size )
    {
-      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
-
-      result r;
-      r.set_code( 1 );
-      r.mutable_value().set( (uint8_t*)err_msg.data(), err_msg.size() );
-      exit( r );
+      revert( "key size exceeds max size of " + std::to_string( detail::max_key_size ) );
    }
 
    put_object_arguments args;
@@ -620,12 +611,7 @@ inline std::string get_object( const object_space& space, const std::string& key
 {
    if ( key.size() > detail::max_key_size )
    {
-      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
-
-      result r;
-      r.set_code( 1 );
-      r.mutable_value().set( (uint8_t*)err_msg.data(), err_msg.size() );
-      exit( r );
+      revert( "key size exceeds max size of " + std::to_string( detail::max_key_size ) );
    }
 
    get_object_arguments args;
@@ -686,12 +672,7 @@ inline void remove_object( const object_space& space, const std::string& key )
 {
    if ( key.size() > detail::max_key_size )
    {
-      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
-
-      result r;
-      r.set_code( 1 );
-      r.mutable_value().set( (uint8_t*)err_msg.data(), err_msg.size() );
-      exit( r );
+      revert( "key size exceeds max size of " + std::to_string( detail::max_key_size ) );
    }
 
    remove_object_arguments args;
@@ -808,12 +789,7 @@ inline void event( const std::string& name, const T& data, const std::vector< st
 {
    if ( impacted.size() > detail::max_impacted_size )
    {
-      std::string err_msg = "impacted size exceeds max size of " + std::to_string( detail::max_impacted_size );
-
-      result r;
-      r.set_code( 1 );
-      r.mutable_value().set( (uint8_t*)err_msg.data(), err_msg.size() );
-      exit( r );
+      revert( "impacted size exceeds max size of " + std::to_string( detail::max_impacted_size ) );
    }
 
    std::array< uint8_t, detail::max_argument_size > buf;
@@ -994,7 +970,7 @@ inline bool verify_signature( chain::dsa type, const std::string& public_key, co
 
 // Contract Management
 
-inline std::pair< int32_t, std::string > call( const std::string& id, uint32_t entry_point, const std::string& arguments )
+inline std::pair< int32_t, result > call( const std::string& id, uint32_t entry_point, const std::string& arguments )
 {
    koinos::chain::call_arguments< detail::max_hash_size, detail::max_argument_size > args;
    args.mutable_contract_id().set( reinterpret_cast< const uint8_t* >( id.data() ), id.size() );
@@ -1016,23 +992,14 @@ inline std::pair< int32_t, std::string > call( const std::string& id, uint32_t e
    );
 
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+   koinos::chain::call_result< detail::max_argument_size, detail::max_argument_size > res;
 
    if ( retval )
-   {
-      detail::einfo.deserialize( rdbuf );
+      res.mutable_value().mutable_error().deserialize( rdbuf );
+   else
+      res.deserialize( rdbuf );
 
-      return std::make_pair( retval, std::string() );
-   }
-
-   koinos::chain::call_result< detail::max_argument_size > res;
-   res.deserialize( rdbuf );
-
-   return std::make_pair( retval, std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() ) );
-}
-
-inline const error_info& get_error_info()
-{
-   return detail::einfo;
+   return std::make_pair( retval, res.get_value() );
 }
 
 inline std::pair< uint32_t, std::string > get_arguments()
@@ -1064,45 +1031,11 @@ inline std::pair< uint32_t, std::string > get_arguments()
    return std::make_pair( res.get_value().entry_point(), std::string( reinterpret_cast< const char* >( res.get_value().get_arguments().get_const() ), res.get_value().get_arguments().get_length() ) );
 }
 
-inline void revert( const std::string& msg )
-{
-   std::array< uint8_t, detail::max_argument_size > buf;
-   koinos::write_buffer wbuf( buf.data(), buf.size() );
-
-   chain::error_info< detail::max_argument_size > ei;
-   ei.mutable_message().set( reinterpret_cast< const char* >( msg.data() ), msg.size() );
-   ei.serialize( wbuf );
-
-   result r;
-   r.set_code( 1 );
-   r.mutable_value().set( buf.data(), wbuf.get_size() );
-   exit( r );
-}
-
-inline void exit( int32_t code )
-{
-   result r;
-   r.set_code( code );
-   exit( r );
-}
-
-inline void exit( int32_t code, const ::EmbeddedProto::MessageInterface& msg )
-{
-   result r;
-   r.set_code( code );
-
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   msg.serialize( buffer );
-
-   r.mutable_value().set( buffer.data(), buffer.get_size() );
-
-   exit( r );
-}
-
-inline void exit( const result& r )
+inline void exit( int32_t code, const result& r )
 {
    exit_arguments args;
-   args.mutable_retval() = r;
+   args.set_code( code );
+   args.mutable_res() = r;
 
    koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
    args.serialize( buffer );
@@ -1120,6 +1053,26 @@ inline void exit( const result& r )
 
    if ( retval )
       revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
+}
+
+inline void exit( const ::EmbeddedProto::MessageInterface& msg )
+{
+   result r;
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   msg.serialize( buffer );
+
+   r.mutable_object().set( buffer.data(), buffer.get_size() );
+
+   exit( 0, r );
+}
+
+inline void revert( const std::string& msg )
+{
+   result r;
+   r.mutable_error().mutable_message().set( reinterpret_cast< const char* >( msg.data() ), msg.size() );
+
+   exit( 1, r );
 }
 
 inline std::string get_contract_id()

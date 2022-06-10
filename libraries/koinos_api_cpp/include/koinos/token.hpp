@@ -40,7 +40,7 @@ class token
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::name_entry, std::string() );
          if ( code != 0 )
             system::revert();
-         koinos::read_buffer buf( (uint8_t*)ret_value.data(), ret_value.size() );
+         koinos::read_buffer buf( (uint8_t*)ret_value.get_object().get_const(), ret_value.get_object().get_length() );
          detail::name_result res;
          res.deserialize( buf );
          return std::string( res.get_value().get_const(), res.get_value().get_length() );
@@ -51,7 +51,7 @@ class token
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::symbol_entry, std::string() );
          if ( code != 0 )
             system::revert();
-         koinos::read_buffer buf( (uint8_t*)ret_value.data(), ret_value.size() );
+         koinos::read_buffer buf( (uint8_t*)ret_value.get_object().get_const(), ret_value.get_object().get_length() );
          detail::symbol_result res;
          res.deserialize( buf );
          return std::string( res.get_value().get_const(), res.get_value().get_length() );
@@ -62,7 +62,7 @@ class token
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::decimals_entry, std::string() );
          if ( code != 0 )
             system::revert();
-         koinos::read_buffer buf( (uint8_t*)ret_value.data(), ret_value.size() );
+         koinos::read_buffer buf( (uint8_t*)ret_value.get_object().get_const(), ret_value.get_object().get_length() );
          koinos::contracts::token::decimals_result res;
          res.deserialize( buf );
          return res.get_value();
@@ -73,7 +73,7 @@ class token
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::total_supply_entry, std::string() );
          if ( code != 0 )
             system::revert();
-         koinos::read_buffer buf( (uint8_t*)ret_value.data(), ret_value.size() );
+         koinos::read_buffer buf( (uint8_t*)ret_value.get_object().get_const(), ret_value.get_object().get_length() );
          koinos::contracts::token::total_supply_result res;
          res.deserialize( buf );
          return res.get_value();
@@ -88,7 +88,7 @@ class token
          args.serialize( wbuf );
 
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::balance_of_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
-         koinos::read_buffer buf( (uint8_t*)ret_value.data(), ret_value.size() );
+         koinos::read_buffer buf( (uint8_t*)ret_value.get_object().get_const(), ret_value.get_object().get_length() );
          koinos::contracts::token::balance_of_result res;
          res.deserialize( buf );
          return res.get_value();
@@ -105,7 +105,9 @@ class token
          args.serialize( wbuf );
 
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::transfer_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
-         koinos::read_buffer buf( (uint8_t*)ret_value.data(), ret_value.size() );
+         if ( code != 0 )
+            system::revert();
+         koinos::read_buffer buf( (uint8_t*)ret_value.get_object().get_const(), ret_value.get_object().get_length() );
          koinos::contracts::token::transfer_result res;
          res.deserialize( buf );
          return res.get_value();
@@ -123,7 +125,7 @@ class token
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::mint_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
          if ( code != 0 )
             system::revert();
-         koinos::read_buffer buf( (uint8_t*)ret_value.data(), ret_value.size() );
+         koinos::read_buffer buf( (uint8_t*)ret_value.get_object().get_const(), ret_value.get_object().get_length() );
          koinos::contracts::token::mint_result res;
          res.deserialize( buf );
          return res.get_value();
@@ -141,7 +143,7 @@ class token
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::burn_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
          if ( code != 0 )
             system::revert();
-         koinos::read_buffer buf( (uint8_t*)ret_value.data(), ret_value.size() );
+         koinos::read_buffer buf( (uint8_t*)ret_value.get_object().get_const(), ret_value.get_object().get_length() );
          koinos::contracts::token::mint_result res;
          res.deserialize( buf );
          return res.get_value();
