@@ -1,6 +1,5 @@
 #pragma once
 #include <koinos/system/system_calls.hpp>
-#include <koinos/chain/error.h>
 #include <koinos/contracts/token/token.h>
 
 namespace koinos {
