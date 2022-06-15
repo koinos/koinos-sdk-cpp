@@ -106,7 +106,7 @@ class token
          args.serialize( wbuf );
 
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::transfer_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
-         return code == std::underlying_type_t< koinos::chain::error_code >( koinos::chain::error_code::success );
+         return code == 0;
       }
 
       inline bool mint( const std::string& to, const uint64_t& value )
@@ -119,7 +119,7 @@ class token
          args.serialize( wbuf );
 
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::mint_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
-         return code == std::underlying_type_t< koinos::chain::error_code >( koinos::chain::error_code::success );
+         return code == 0;
       }
 
       inline bool burn( const std::string& from, const uint64_t& value )
@@ -132,7 +132,7 @@ class token
          args.serialize( wbuf );
 
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::burn_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
-         return code == std::underlying_type_t< koinos::chain::error_code >( koinos::chain::error_code::success );
+         return code == 0;
       }
 };
 
