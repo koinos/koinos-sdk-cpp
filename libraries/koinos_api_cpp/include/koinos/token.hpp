@@ -1,5 +1,6 @@
 #pragma once
 #include <koinos/system/system_calls.hpp>
+#include <koinos/chain/error.h>
 #include <koinos/contracts/token/token.h>
 
 namespace koinos {
@@ -105,12 +106,7 @@ class token
          args.serialize( wbuf );
 
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::transfer_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
-         if ( code != 0 )
-            system::revert();
-         koinos::read_buffer buf( (uint8_t*)ret_value.get_object().get_const(), ret_value.get_object().get_length() );
-         koinos::contracts::token::transfer_result res;
-         res.deserialize( buf );
-         return res.get_value();
+         return code == std::underlying_type_t< koinos::chain::error_code >( koinos::chain::error_code::success );
       }
 
       inline bool mint( const std::string& to, const uint64_t& value )
@@ -123,12 +119,7 @@ class token
          args.serialize( wbuf );
 
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::mint_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
-         if ( code != 0 )
-            system::revert();
-         koinos::read_buffer buf( (uint8_t*)ret_value.get_object().get_const(), ret_value.get_object().get_length() );
-         koinos::contracts::token::mint_result res;
-         res.deserialize( buf );
-         return res.get_value();
+         return code == std::underlying_type_t< koinos::chain::error_code >( koinos::chain::error_code::success );
       }
 
       inline bool burn( const std::string& from, const uint64_t& value )
@@ -141,12 +132,7 @@ class token
          args.serialize( wbuf );
 
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::burn_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
-         if ( code != 0 )
-            system::revert();
-         koinos::read_buffer buf( (uint8_t*)ret_value.get_object().get_const(), ret_value.get_object().get_length() );
-         koinos::contracts::token::mint_result res;
-         res.deserialize( buf );
-         return res.get_value();
+         return code == std::underlying_type_t< koinos::chain::error_code >( koinos::chain::error_code::success );
       }
 };
 
