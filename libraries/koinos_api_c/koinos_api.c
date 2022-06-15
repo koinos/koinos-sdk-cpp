@@ -7,13 +7,19 @@
 __attribute__((__noreturn__))
 void koinos_exit( int32_t rval )
 {
-   uint32_t bytes_written = 0;
-   // We are hand generating an exit_args message
-   char rbuf[4];
-   rbuf[0] = 0x0a;
-   rbuf[1] = 0x02;
-   rbuf[2] = 0x08;
-   rbuf[3] = ( rval == 0 ) ? 0x00 : 0x01;
-   invoke_system_call( KOINOS_SYSTEM_CALL_EXIT, KOINOS_NULL, 0, rbuf, 4, &bytes_written );
+   // We are hand generating an exit_arguments message
+   // Largest buffer is for exit code -1
+   char *buf = {0x08, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01};
+   uint32_t bytes_written = 11;
+
+   if ( rval == 0 )
+      bytes_written = 0;
+   if ( rval > 0 )
+   {
+      buf[1] = 0x01;
+      bytes_written = 2;
+   }
+
+   invoke_system_call( KOINOS_SYSTEM_CALL_EXIT, KOINOS_NULL, 0, buf, bytes_written, &bytes_written );
 }
 #pragma GCC diagnostic pop

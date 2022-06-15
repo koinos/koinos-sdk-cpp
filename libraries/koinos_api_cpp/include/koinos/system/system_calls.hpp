@@ -65,8 +65,8 @@ using remove_object_arguments = koinos::chain::remove_object_arguments< detail::
 using get_next_object_arguments = koinos::chain::get_next_object_arguments< detail::zone_size, detail::max_key_size >;
 using get_prev_object_arguments = koinos::chain::get_prev_object_arguments< detail::zone_size, detail::max_key_size >;
 using value_type = koinos::chain::value_type< detail::max_field_size, detail::max_field_size >;
-using result = koinos::chain::result< detail::max_argument_size >;
-using exit_arguments = koinos::chain::exit_arguments< detail::max_argument_size >;
+using result = koinos::chain::result< detail::max_argument_size, detail::max_argument_size >;
+using exit_arguments = koinos::chain::exit_arguments< detail::max_argument_size, detail::max_argument_size >;
 
 using block = koinos::protocol::block<
    detail::max_hash_size,           // id
@@ -142,14 +142,10 @@ using call_contract_operation = koinos::protocol::call_contract_operation<
 using set_system_call_operation = koinos::protocol::set_system_call_operation< detail::max_argument_size >;
 using set_system_contract_operation = koinos::protocol::set_system_contract_operation< detail::max_address_size >;
 using head_info = koinos::chain::head_info< detail::max_hash_size, detail::max_hash_size >;
-using error_info = koinos::chain::error_info< detail::max_argument_size >;
-
-namespace detail {
-   static error_info einfo;
-} // detail
+using error_data = koinos::chain::error_data< detail::max_argument_size >;
 
 inline void log( const std::string& );
-inline void exit( const result& r );
+inline void exit( int32_t code, const result& r = result() );
 inline void revert( const std::string& msg = "" );
 
 // General Blockchain Management
@@ -172,10 +168,14 @@ inline head_info get_head_info()
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::get_head_info_result< detail::max_hash_size, detail::max_hash_size > res;
    res.deserialize( rdbuf );
@@ -381,10 +381,14 @@ inline bool process_block_signature( const std::string& digest, const block_head
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::process_block_signature_result res;
    res.deserialize( rdbuf );
@@ -411,10 +415,14 @@ inline value_type get_transaction_field( const std::string& field )
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::get_transaction_field_result< detail::max_field_size, detail::max_field_size > res;
    res.deserialize( rdbuf );
@@ -441,10 +449,14 @@ inline value_type get_block_field( const std::string& field )
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::get_block_field_result< detail::max_field_size, detail::max_field_size > res;
    res.deserialize( rdbuf );
@@ -470,10 +482,14 @@ inline uint64_t get_last_irreversible_block()
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::get_last_irreversible_block_result res;
    res.deserialize( rdbuf );
@@ -499,10 +515,14 @@ inline std::string get_account_nonce( const std::string& account )
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::get_account_nonce_result< detail::max_nonce_size > res;
    res.deserialize( rdbuf );
@@ -528,10 +548,14 @@ inline bool check_system_authority( koinos::chain::system_authorization_type typ
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::check_system_authority_result res;
    res.deserialize( rdbuf );
@@ -560,10 +584,14 @@ inline uint64_t get_account_rc( const std::string& account )
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::get_account_rc_result res;
    res.deserialize( rdbuf );
@@ -585,12 +613,7 @@ inline void put_object( const object_space& space, const std::string& key, const
 {
    if ( key.size() > detail::max_key_size )
    {
-      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
-
-      result r;
-      r.set_code( 1 );
-      r.mutable_value().set( (uint8_t*)err_msg.data(), err_msg.size() );
-      exit( r );
+      revert( "key size exceeds max size of " + std::to_string( detail::max_key_size ) );
    }
 
    put_object_arguments args;
@@ -613,19 +636,19 @@ inline void put_object( const object_space& space, const std::string& key, const
    );
 
    if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
+   {
+      koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 }
 
 inline std::string get_object( const object_space& space, const std::string& key, uint32_t object_size_hint = 0 )
 {
    if ( key.size() > detail::max_key_size )
    {
-      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
-
-      result r;
-      r.set_code( 1 );
-      r.mutable_value().set( (uint8_t*)err_msg.data(), err_msg.size() );
-      exit( r );
+      revert( "key size exceeds max size of " + std::to_string( detail::max_key_size ) );
    }
 
    get_object_arguments args;
@@ -646,10 +669,14 @@ inline std::string get_object( const object_space& space, const std::string& key
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::get_object_result< detail::max_argument_size, detail::max_key_size > res;
    res.deserialize( rdbuf );
@@ -686,12 +713,7 @@ inline void remove_object( const object_space& space, const std::string& key )
 {
    if ( key.size() > detail::max_key_size )
    {
-      std::string err_msg = "key size exceeds max size of " + std::to_string( detail::max_key_size );
-
-      result r;
-      r.set_code( 1 );
-      r.mutable_value().set( (uint8_t*)err_msg.data(), err_msg.size() );
-      exit( r );
+      revert( "key size exceeds max size of " + std::to_string( detail::max_key_size ) );
    }
 
    remove_object_arguments args;
@@ -713,7 +735,12 @@ inline void remove_object( const object_space& space, const std::string& key )
    );
 
    if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
+   {
+      koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 }
 
 inline std::string get_next_object( const object_space& space, const std::string& key )
@@ -736,10 +763,14 @@ inline std::string get_next_object( const object_space& space, const std::string
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::get_next_object_result< detail::max_argument_size, detail::max_key_size > res;
    res.deserialize( rdbuf );
@@ -767,10 +798,14 @@ inline std::string get_prev_object( const object_space& space, const std::string
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::get_prev_object_result< detail::max_argument_size, detail::max_key_size > res;
    res.deserialize( rdbuf );
@@ -800,7 +835,12 @@ inline void log( const std::string& s )
    );
 
    if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
+   {
+      koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 }
 
 template< typename T >
@@ -808,12 +848,7 @@ inline void event( const std::string& name, const T& data, const std::vector< st
 {
    if ( impacted.size() > detail::max_impacted_size )
    {
-      std::string err_msg = "impacted size exceeds max size of " + std::to_string( detail::max_impacted_size );
-
-      result r;
-      r.set_code( 1 );
-      r.mutable_value().set( (uint8_t*)err_msg.data(), err_msg.size() );
-      exit( r );
+      revert( "impacted size exceeds max size of " + std::to_string( detail::max_impacted_size ) );
    }
 
    std::array< uint8_t, detail::max_argument_size > buf;
@@ -846,7 +881,12 @@ inline void event( const std::string& name, const T& data, const std::vector< st
    );
 
    if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
+   {
+      koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 }
 
 // Cryptography
@@ -872,10 +912,14 @@ inline std::string hash( uint64_t code, const std::string& obj, uint64_t size = 
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::hash_result< detail::max_hash_size > res;
    res.deserialize( rdbuf );
@@ -904,10 +948,14 @@ inline std::string recover_public_key( const std::string& signature, const std::
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::recover_public_key_result< detail::max_hash_size > res;
    res.deserialize( rdbuf );
@@ -944,10 +992,14 @@ inline bool verify_merkle_root( const std::string& root, const std::vector< std:
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::verify_merkle_root_result res;
    res.deserialize( rdbuf );
@@ -981,10 +1033,14 @@ inline bool verify_signature( chain::dsa type, const std::string& public_key, co
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::verify_signature_result res;
    res.deserialize( rdbuf );
@@ -994,7 +1050,7 @@ inline bool verify_signature( chain::dsa type, const std::string& public_key, co
 
 // Contract Management
 
-inline std::pair< int32_t, std::string > call( const std::string& id, uint32_t entry_point, const std::string& arguments )
+inline std::pair< int32_t, result > call( const std::string& id, uint32_t entry_point, const std::string& arguments )
 {
    koinos::chain::call_arguments< detail::max_hash_size, detail::max_argument_size > args;
    args.mutable_contract_id().set( reinterpret_cast< const uint8_t* >( id.data() ), id.size() );
@@ -1016,23 +1072,10 @@ inline std::pair< int32_t, std::string > call( const std::string& id, uint32_t e
    );
 
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
-
-   if ( retval )
-   {
-      detail::einfo.deserialize( rdbuf );
-
-      return std::make_pair( retval, std::string() );
-   }
-
-   koinos::chain::call_result< detail::max_argument_size > res;
+   koinos::chain::call_result< detail::max_argument_size, detail::max_argument_size > res;
    res.deserialize( rdbuf );
 
-   return std::make_pair( retval, std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() ) );
-}
-
-inline const error_info& get_error_info()
-{
-   return detail::einfo;
+   return std::make_pair( retval, res.get_value() );
 }
 
 inline std::pair< uint32_t, std::string > get_arguments()
@@ -1053,10 +1096,14 @@ inline std::pair< uint32_t, std::string > get_arguments()
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::get_arguments_result< detail::max_argument_size > res;
    res.deserialize( rdbuf );
@@ -1064,45 +1111,11 @@ inline std::pair< uint32_t, std::string > get_arguments()
    return std::make_pair( res.get_value().entry_point(), std::string( reinterpret_cast< const char* >( res.get_value().get_arguments().get_const() ), res.get_value().get_arguments().get_length() ) );
 }
 
-inline void revert( const std::string& msg )
-{
-   std::array< uint8_t, detail::max_argument_size > buf;
-   koinos::write_buffer wbuf( buf.data(), buf.size() );
-
-   chain::error_info< detail::max_argument_size > ei;
-   ei.mutable_message().set( reinterpret_cast< const char* >( msg.data() ), msg.size() );
-   ei.serialize( wbuf );
-
-   result r;
-   r.set_code( 1 );
-   r.mutable_value().set( buf.data(), wbuf.get_size() );
-   exit( r );
-}
-
-inline void exit( int32_t code )
-{
-   result r;
-   r.set_code( code );
-   exit( r );
-}
-
-inline void exit( int32_t code, const ::EmbeddedProto::MessageInterface& msg )
-{
-   result r;
-   r.set_code( code );
-
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   msg.serialize( buffer );
-
-   r.mutable_value().set( buffer.data(), buffer.get_size() );
-
-   exit( r );
-}
-
-inline void exit( const result& r )
+inline void exit( int32_t code, const result& r )
 {
    exit_arguments args;
-   args.mutable_retval() = r;
+   args.set_code( code );
+   args.mutable_res() = r;
 
    koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
    args.serialize( buffer );
@@ -1119,7 +1132,32 @@ inline void exit( const result& r )
    );
 
    if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
+   {
+      koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
+}
+
+inline void exit( const ::EmbeddedProto::MessageInterface& msg )
+{
+   result r;
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   msg.serialize( buffer );
+
+   r.mutable_object().set( buffer.data(), buffer.get_size() );
+
+   exit( 0, r );
+}
+
+inline void revert( const std::string& msg )
+{
+   result r;
+   r.mutable_error().mutable_message().set( reinterpret_cast< const char* >( msg.data() ), msg.size() );
+
+   exit( 1, r );
 }
 
 inline std::string get_contract_id()
@@ -1140,10 +1178,14 @@ inline std::string get_contract_id()
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::get_contract_id_result< detail::max_hash_size > res;
    res.deserialize( rdbuf );
@@ -1169,10 +1211,14 @@ inline std::pair< std::string, koinos::chain::privilege > get_caller()
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::get_caller_result< detail::max_hash_size > res;
    res.deserialize( rdbuf );
@@ -1201,10 +1247,14 @@ inline bool check_authority( const std::string& account )
       &bytes_written
    );
 
-   if ( retval )
-      revert( std::string( reinterpret_cast< char* >( buffer.data() ), bytes_written ) );
-
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
 
    koinos::chain::check_authority_result res;
    res.deserialize( rdbuf );
