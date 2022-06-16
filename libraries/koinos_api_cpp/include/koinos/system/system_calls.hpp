@@ -1072,10 +1072,20 @@ inline std::pair< int32_t, result > call( const std::string& id, uint32_t entry_
    );
 
    koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
-   koinos::chain::call_result< detail::max_argument_size, detail::max_argument_size > res;
-   res.deserialize( rdbuf );
+   koinos::chain::result< detail::max_argument_size, detail::max_argument_size > res;
 
-   return std::make_pair( retval, res.get_value() );
+   if ( retval )
+   {
+      res.mutable_error().deserialize( rdbuf );
+   }
+   else
+   {
+      koinos::chain::call_result< detail::max_argument_size > call_res;
+      call_res.deserialize( rdbuf );
+      res.mutable_object().set( call_res.get_value() );
+   }
+
+   return std::make_pair( retval, std::move( res ) );
 }
 
 inline std::pair< uint32_t, std::string > get_arguments()
@@ -1122,7 +1132,7 @@ inline void exit( int32_t code, const result& r )
 
    uint32_t bytes_written = 0;
 
-   int32_t retval = invoke_system_call(
+   invoke_system_call(
       std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::exit ),
       reinterpret_cast< char* >( detail::syscall_buffer.data() ),
       std::size( detail::syscall_buffer ),
@@ -1130,14 +1140,6 @@ inline void exit( int32_t code, const result& r )
       buffer.get_size(),
       &bytes_written
    );
-
-   if ( retval )
-   {
-      koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
-      result res;
-      res.deserialize( rdbuf );
-      exit( retval, res );
-   }
 }
 
 inline void exit( const ::EmbeddedProto::MessageInterface& msg )
