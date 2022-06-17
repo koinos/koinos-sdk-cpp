@@ -1229,11 +1229,12 @@ inline std::pair< std::string, koinos::chain::privilege > get_caller()
    return std::make_pair( std::string( reinterpret_cast< const char* >( value.get_caller().get_const() ), value.get_caller().get_length() ), value.get_caller_privilege() );
 }
 
-inline bool check_authority( const std::string& account )
+inline bool check_authority( const std::string& account, const std::string& data = std::string() )
 {
-   koinos::chain::check_authority_arguments< detail::max_hash_size > args;
+   koinos::chain::check_authority_arguments< detail::max_hash_size, detail::max_argument_size > args;
    args.set_type( koinos::chain::authorization_type::contract_call );
    args.mutable_account().set( reinterpret_cast< const uint8_t* >( account.data() ), account.size() );
+   args.mutable_data().set( reinterpret_cast< const uint8_t* >( data.data() ), data.size() );
 
    koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
    args.serialize( buffer );
