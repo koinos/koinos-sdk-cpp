@@ -45,6 +45,7 @@ using Any = koinos::Any< koinos::system::detail::max_field_name_length, koinos::
 
 #include <koinos/chain/authority.h>
 #include <koinos/chain/chain.h>
+#include <koinos/chain/error.h>
 #include <koinos/chain/system_calls.h>
 #include <koinos/chain/system_call_ids.h>
 #include <koinos/chain/value.h>
@@ -146,7 +147,8 @@ using error_data = koinos::chain::error_data< detail::max_argument_size >;
 
 inline void log( const std::string& );
 inline void exit( int32_t code, const result& r = result() );
-inline void revert( const std::string& msg = "" );
+inline void revert( const std::string& msg = "", int32_t code = static_cast< int32_t >( chain::error_code::reversion ) );
+inline void fail( const std::string& msg = "", int32_t code = static_cast< int32_t >( chain::error_code::failure ) );
 
 // General Blockchain Management
 
@@ -1154,12 +1156,22 @@ inline void exit( const ::EmbeddedProto::MessageInterface& msg )
    exit( 0, r );
 }
 
-inline void revert( const std::string& msg )
+inline void revert( const std::string& msg, int32_t code )
 {
    result r;
    r.mutable_error().mutable_message().set( reinterpret_cast< const char* >( msg.data() ), msg.size() );
+   code = std::max( static_cast< int32_t >( chain::error_code::reversion ), code );
 
-   exit( 1, r );
+   exit( code, r );
+}
+
+inline void fail( const std::string& msg, int32_t code )
+{
+   result r;
+   r.mutable_error().mutable_message().set( reinterpret_cast< const char* >( msg.data() ), msg.size() );
+   code = std::min( static_cast< int32_t >( chain::error_code::failure ), code );
+
+   exit( code, r );
 }
 
 inline std::string get_contract_id()
