@@ -1165,6 +1165,11 @@ inline void revert( const std::string& msg, int32_t code )
    exit( code, r );
 }
 
+inline void revert( const std::string& msg, chain::error_code code )
+{
+   revert( msg, static_cast< int32_t >( code ) );
+}
+
 inline void fail( const std::string& msg, int32_t code )
 {
    result r;
@@ -1172,6 +1177,11 @@ inline void fail( const std::string& msg, int32_t code )
    code = std::min( static_cast< int32_t >( chain::error_code::failure ), code );
 
    exit( code, r );
+}
+
+inline void fail( const std::string& msg, chain::error_code code )
+{
+   fail( msg, static_cast< int32_t >( code ) );
 }
 
 inline std::string get_contract_id()
