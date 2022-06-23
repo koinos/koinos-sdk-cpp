@@ -45,6 +45,7 @@ using Any = koinos::Any< koinos::system::detail::max_field_name_length, koinos::
 
 #include <koinos/chain/authority.h>
 #include <koinos/chain/chain.h>
+#include <koinos/chain/error.h>
 #include <koinos/chain/system_calls.h>
 #include <koinos/chain/system_call_ids.h>
 #include <koinos/chain/value.h>
@@ -146,7 +147,8 @@ using error_data = koinos::chain::error_data< detail::max_argument_size >;
 
 inline void log( const std::string& );
 inline void exit( int32_t code, const result& r = result() );
-inline void revert( const std::string& msg = "" );
+inline void revert( const std::string& msg = "", int32_t code = static_cast< int32_t >( chain::error_code::reversion ) );
+inline void fail( const std::string& msg = "", int32_t code = static_cast< int32_t >( chain::error_code::failure ) );
 
 // General Blockchain Management
 
@@ -1048,6 +1050,49 @@ inline bool verify_signature( chain::dsa type, const std::string& public_key, co
    return res.get_value();
 }
 
+inline bool verify_vrf_proof( chain::dsa type, const std::string& public_key, const std::string& proof, const std::string& hash, const std::string& message )
+{
+   koinos::chain::verify_vrf_proof_arguments<
+      detail::max_public_key_size,
+      detail::max_signature_size,
+      detail::max_hash_size,
+      detail::max_argument_size > args;
+
+   args.set_type( type );
+   args.mutable_public_key().set( reinterpret_cast< const uint8_t* >( public_key.data() ), public_key.size() );
+   args.mutable_proof().set( reinterpret_cast< const uint8_t* >( proof.data() ), proof.size() );
+   args.mutable_hash().set( reinterpret_cast< const uint8_t* >( hash.data() ), hash.size() );
+   args.mutable_message().set( reinterpret_cast< const uint8_t* >( message.data() ), message.size() );
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   args.serialize( buffer );
+
+   uint32_t bytes_written = 0;
+
+   uint32_t retval = invoke_system_call(
+      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::verify_vrf_proof ),
+      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
+      std::size( detail::syscall_buffer ),
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size(),
+      &bytes_written
+   );
+
+   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.deserialize( rdbuf );
+      exit( retval, res );
+   }
+
+   koinos::chain::verify_vrf_proof_result res;
+   res.deserialize( rdbuf );
+
+   return res.get_value();
+}
+
 // Contract Management
 
 inline std::pair< int32_t, result > call( const std::string& id, uint32_t entry_point, const std::string& arguments )
@@ -1154,12 +1199,32 @@ inline void exit( const ::EmbeddedProto::MessageInterface& msg )
    exit( 0, r );
 }
 
-inline void revert( const std::string& msg )
+inline void revert( const std::string& msg, int32_t code )
 {
    result r;
    r.mutable_error().mutable_message().set( reinterpret_cast< const char* >( msg.data() ), msg.size() );
+   code = std::max( static_cast< int32_t >( chain::error_code::reversion ), code );
 
-   exit( 1, r );
+   exit( code, r );
+}
+
+inline void revert( const std::string& msg, chain::error_code code )
+{
+   revert( msg, static_cast< int32_t >( code ) );
+}
+
+inline void fail( const std::string& msg, int32_t code )
+{
+   result r;
+   r.mutable_error().mutable_message().set( reinterpret_cast< const char* >( msg.data() ), msg.size() );
+   code = std::min( static_cast< int32_t >( chain::error_code::failure ), code );
+
+   exit( code, r );
+}
+
+inline void fail( const std::string& msg, chain::error_code code )
+{
+   fail( msg, static_cast< int32_t >( code ) );
 }
 
 inline std::string get_contract_id()
