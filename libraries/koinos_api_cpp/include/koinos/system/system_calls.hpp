@@ -14,13 +14,13 @@ constexpr std::size_t max_signatures_length  = 16;
 constexpr std::size_t max_signature_size     = 2 * max_hash_size;
 constexpr std::size_t max_active_data_size   = 1 << 10;
 constexpr std::size_t max_argument_size      = 2048;
-constexpr std::size_t max_buffer_size        = 1 << 10;
+constexpr std::size_t max_buffer_size        = 1 << 12;
 constexpr std::size_t max_transaction_length = 512;
 constexpr std::size_t max_operation_length   = 64;
 constexpr std::size_t max_contract_size      = 2 << 10;
 constexpr std::size_t max_contract_abi_size  = 2 << 10;
 constexpr std::size_t max_space_size         = 32;
-constexpr std::size_t max_key_size           = 32;
+constexpr std::size_t max_key_size           = max_hash_size;
 constexpr std::size_t zone_size              = 128;
 constexpr std::size_t max_event_name_size    = 32;
 constexpr std::size_t max_event_size         = 1024;
@@ -175,7 +175,7 @@ inline head_info get_head_info()
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -388,7 +388,7 @@ inline bool process_block_signature( const std::string& digest, const block_head
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -422,7 +422,7 @@ inline value_type get_transaction_field( const std::string& field )
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -456,7 +456,7 @@ inline value_type get_block_field( const std::string& field )
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -489,7 +489,7 @@ inline uint64_t get_last_irreversible_block()
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -522,7 +522,7 @@ inline std::string get_account_nonce( const std::string& account )
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -532,7 +532,7 @@ inline std::string get_account_nonce( const std::string& account )
    return std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() );
 }
 
-inline bool check_system_authority( koinos::chain::system_authorization_type type )
+inline bool check_system_authority()
 {
    koinos::chain::check_system_authority_arguments args;
 
@@ -555,7 +555,7 @@ inline bool check_system_authority( koinos::chain::system_authorization_type typ
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -591,7 +591,7 @@ inline uint64_t get_account_rc( const std::string& account )
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -641,7 +641,7 @@ inline void put_object( const object_space& space, const std::string& key, const
    {
       koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 }
@@ -676,7 +676,7 @@ inline std::string get_object( const object_space& space, const std::string& key
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -740,7 +740,7 @@ inline void remove_object( const object_space& space, const std::string& key )
    {
       koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 }
@@ -770,7 +770,7 @@ inline std::string get_next_object( const object_space& space, const std::string
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -805,7 +805,7 @@ inline std::string get_prev_object( const object_space& space, const std::string
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -840,7 +840,7 @@ inline void log( const std::string& s )
    {
       koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 }
@@ -886,7 +886,7 @@ inline void event( const std::string& name, const T& data, const std::vector< st
    {
       koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 }
@@ -919,7 +919,7 @@ inline std::string hash( uint64_t code, const std::string& obj, uint64_t size = 
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -955,7 +955,7 @@ inline std::string recover_public_key( const std::string& signature, const std::
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -999,7 +999,7 @@ inline bool verify_merkle_root( const std::string& root, const std::vector< std:
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -1040,7 +1040,7 @@ inline bool verify_signature( chain::dsa type, const std::string& public_key, co
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -1083,7 +1083,7 @@ inline bool verify_vrf_proof( chain::dsa type, const std::string& public_key, co
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -1156,7 +1156,7 @@ inline std::pair< uint32_t, std::string > get_arguments()
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -1250,7 +1250,7 @@ inline std::string get_contract_id()
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -1283,7 +1283,7 @@ inline std::pair< std::string, koinos::chain::privilege > get_caller()
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
@@ -1320,7 +1320,7 @@ inline bool check_authority( const std::string& account, const std::string& data
    if ( retval )
    {
       result res;
-      res.deserialize( rdbuf );
+      res.mutable_error().deserialize( rdbuf );
       exit( retval, res );
    }
 
