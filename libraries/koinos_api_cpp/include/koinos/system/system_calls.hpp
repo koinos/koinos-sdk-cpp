@@ -929,12 +929,13 @@ inline std::string hash( uint64_t code, const std::string& obj, uint64_t size = 
    return std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() );
 }
 
-inline std::string recover_public_key( const std::string& signature, const std::string& digest, koinos::chain::dsa algo = koinos::chain::dsa::ecdsa_secp256k1 )
+inline std::string recover_public_key( const std::string& signature, const std::string& digest, koinos::chain::dsa algo = koinos::chain::dsa::ecdsa_secp256k1, bool compressed = true )
 {
    koinos::chain::recover_public_key_arguments< detail::max_hash_size, detail::max_hash_size > args;
    args.set_type( algo );
    args.mutable_digest().set( reinterpret_cast< const uint8_t* >( digest.data() ), digest.size() );
    args.mutable_signature().set( reinterpret_cast< const uint8_t* >( signature.data() ), signature.size() );
+   args.set_compressed( compressed );
 
    koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
    args.serialize( buffer );
@@ -1009,7 +1010,7 @@ inline bool verify_merkle_root( const std::string& root, const std::vector< std:
    return res.get_value();
 }
 
-inline bool verify_signature( chain::dsa type, const std::string& public_key, const std::string& digest, const std::string& signature )
+inline bool verify_signature( chain::dsa type, const std::string& public_key, const std::string& digest, const std::string& signature, bool compressed = true )
 {
    koinos::chain::verify_signature_arguments<
       detail::max_public_key_size,
@@ -1020,6 +1021,7 @@ inline bool verify_signature( chain::dsa type, const std::string& public_key, co
    args.mutable_public_key().set( reinterpret_cast< const uint8_t* >( public_key.data() ), public_key.size() );
    args.mutable_digest().set( reinterpret_cast< const uint8_t* >( digest.data() ), digest.size() );
    args.mutable_signature().set( reinterpret_cast< const uint8_t* >( signature.data() ), signature.size() );
+   args.set_compressed( compressed );
 
    koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
    args.serialize( buffer );

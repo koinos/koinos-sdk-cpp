@@ -81,6 +81,8 @@ std::string multihash::serialize()
    to_binary( wb, mh_size );
 
    wb.push( reinterpret_cast< const uint8_t* >( digest.data() ), digest.size() );
+
+   return std::string( (const char*)wb.data(), (size_t)wb.get_size() );
 }
 
 } // koinos
