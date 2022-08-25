@@ -26,8 +26,8 @@ make contract
 if [ $? -eq 0 ]; then
    mkdir -p /src/build
 
-   USER=`stat -c "%u" /src/*.ts | head -n 1`
-   GROUP=`stat -c "%g" /src/*.ts | head -n 1`
+   USER=`stat -c "%u" /src/*.cpp | head -n 1`
+   GROUP=`stat -c "%g" /src/*.cpp | head -n 1`
 
    cd src
    cp contract.wasm /src/build
