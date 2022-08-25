@@ -19,12 +19,12 @@ export KOINOS_SDK_ROOT=/opt/koinos-sdk/cpp
 cd /tmp/project
 mkdir build
 cd build
-/opt/cmake/bin/cmake -DCMAKE_TOOLCHAIN_FILE=${KOINOS_SDK_ROOT}/cmake/koinos-wasm-toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake -DCMAKE_TOOLCHAIN_FILE=${KOINOS_SDK_ROOT}/cmake/koinos-wasm-toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
 make contract
 
 # copy build artifacts
 if [ $? -eq 0 ]; then
-   mkdir /src/build
+   mkdir -p /src/build
 
    USER=`stat -c "%u" /src/*.ts | head -n 1`
    GROUP=`stat -c "%g" /src/*.ts | head -n 1`
