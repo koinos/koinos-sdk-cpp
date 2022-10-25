@@ -51,6 +51,8 @@ using Any = koinos::Any< koinos::system::detail::max_field_name_length, koinos::
 #include <koinos/chain/value.h>
 #include <koinos/protocol/protocol.h>
 
+#include <koinos/contracts/name_service/name_service.h>
+
 #include <koinos/buffer.hpp>
 #include <koinos/common.h>
 
@@ -1330,6 +1332,73 @@ inline bool check_authority( const std::string& account, const std::string& data
    res.deserialize( rdbuf );
 
    return res.value();
+}
+
+inline std::string get_contract_name( const std::string& address )
+{
+   koinos::contracts::name_service::get_name_arguments< detail::max_address_size > args;
+   args.mutable_address().set( reinterpret_cast< const uint8_t* >( address.data() ), address.size() );
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   args.serialize( buffer );
+
+   uint32_t bytes_written = 0;
+
+   int32_t retval = invoke_system_call(
+      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::get_contract_name ),
+      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
+      std::size( detail::syscall_buffer ),
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size(),
+      &bytes_written
+   );
+
+   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.mutable_error().deserialize( rdbuf );
+      exit( retval, res );
+   }
+
+   koinos::contracts::name_service::get_name_result< 32 > res;
+   res.deserialize( rdbuf );
+
+   return std::string( res.get_value().get_name().get_const(), res.get_value().get_name().get_length() );
+}
+
+inline std::string get_contract_address( const std::string& name )
+{
+   koinos::contracts::name_service::get_address_arguments< 32 > args;
+   args.mutable_name().set( name.data(), name.size() );
+
+   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+
+   uint32_t bytes_written = 0;
+
+   int32_t retval = invoke_system_call(
+      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::get_contract_address ),
+      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
+      std::size( detail::syscall_buffer ),
+      reinterpret_cast< char* >( buffer.data() ),
+      buffer.get_size(),
+      &bytes_written
+   );
+
+   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
+
+   if ( retval )
+   {
+      result res;
+      res.mutable_error().deserialize( rdbuf );
+      exit( retval, res );
+   }
+
+   koinos::contracts::name_service::get_address_result< detail::max_address_size > res;
+   res.deserialize( rdbuf );
+
+   return std::string( reinterpret_cast< const char* >( res.get_value().get_address().get_const() ), res.get_value().get_address().get_length() );
 }
 
 } // koinos::system
