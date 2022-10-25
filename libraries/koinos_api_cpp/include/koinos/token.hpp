@@ -1,5 +1,6 @@
 #pragma once
 #include <koinos/system/system_calls.hpp>
+#include <koinos/contracts.hpp>
 #include <koinos/contracts/token/token.h>
 
 namespace koinos {
@@ -29,6 +30,8 @@ class token
 {
    private:
       std::string _contract_address;
+
+      token() {}
 
    public:
       inline token( const std::string& contract_address ) :
@@ -132,6 +135,15 @@ class token
 
          auto [ code, ret_value ] = system::call( _contract_address, detail::entries::burn_entry, std::string( reinterpret_cast< char* >( wbuf.data() ), wbuf.get_size() ) );
          return code == 0;
+      }
+
+      static inline token& koin()
+      {
+         static token koin_token;
+         if ( !koin_token._contract_address.size() )
+            koin_token._contract_address = contracts::koin_address();
+
+         return koin_token;
       }
 };
 
