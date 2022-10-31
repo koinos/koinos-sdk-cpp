@@ -1374,6 +1374,7 @@ inline std::string get_contract_address( const std::string& name )
    args.mutable_name().set( name.data(), name.size() );
 
    koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
+   args.serialize( buffer );
 
    uint32_t bytes_written = 0;
 
