@@ -917,7 +917,7 @@ _Noreturn void __wasi_proc_exit(
     __wasi_exitcode_t rval
 )
 {
-   koinos_exit( rval );
+   koinos_exit( rval, KOINOS_NULL, 0 );
 }
 
 /**

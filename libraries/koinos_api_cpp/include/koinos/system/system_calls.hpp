@@ -57,8 +57,17 @@ using Any = koinos::Any< koinos::system::detail::max_field_name_length, koinos::
 #include <koinos/common.h>
 
 extern "C" int32_t invoke_system_call( uint32_t sid, char* ret_ptr, uint32_t ret_len, char* arg_ptr, uint32_t arg_len, uint32_t* bytes_written );
+extern "C" int32_t koinos_get_caller( char* ret_ptr, uint32_t* ret_len );
+extern "C" int32_t koinos_get_object( uint32_t id, const char* key_ptr, uint32_t key_len, char* ret_ptr, uint32_t* ret_len );
+extern "C" int32_t koinos_put_object( uint32_t id, const char* key_ptr, uint32_t key_len, const char* value_ptr, uint32_t value_len );
+extern "C" int32_t koinos_check_authority( const char* account_ptr, uint32_t account_len, const char* data_ptr, uint32_t data_len, bool* value );
+extern "C" int32_t koinos_log( const char* msg_ptr, uint32_t msg_len );
+extern "C" int32_t koinos_exit( uint32_t code, const char* res_bytes, uint32_t res_len );
+extern "C" int32_t koinos_get_arguments( uint32_t* entry_point, char* args_ptr, uint32_t* args_len );
 
 namespace koinos::system {
+
+using bytes = std::vector< std::byte >;
 
 using object_space = koinos::chain::object_space< detail::zone_size >;
 
@@ -148,7 +157,8 @@ using head_info = koinos::chain::head_info< detail::max_hash_size, detail::max_h
 using error_data = koinos::chain::error_data< detail::max_argument_size >;
 
 inline void log( const std::string& );
-inline void exit( int32_t code, const result& r = result() );
+inline void exit( int32_t code, const result& r );
+inline void exit( int32_t code, const std::string& msg = std::string() );
 inline void revert( const std::string& msg = "", int32_t code = static_cast< int32_t >( chain::error_code::reversion ) );
 inline void fail( const std::string& msg = "", int32_t code = static_cast< int32_t >( chain::error_code::failure ) );
 
@@ -613,104 +623,63 @@ inline uint64_t get_account_rc( const std::string& account )
 
 namespace detail {
 
-inline void put_object( const object_space& space, const std::string& key, const std::string& obj )
+inline void put_object( uint32_t id, const bytes& key, const bytes& value )
 {
    if ( key.size() > detail::max_key_size )
-   {
       revert( "key size exceeds max size of " + std::to_string( detail::max_key_size ) );
-   }
 
-   put_object_arguments args;
-   args.mutable_space() = space;
-   args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
-   args.mutable_obj().set( reinterpret_cast< const uint8_t* >( obj.data() ), obj.size() );
-
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   args.serialize( buffer );
-
-   uint32_t bytes_written = 0;
-
-   int32_t retval = invoke_system_call(
-      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::put_object ),
-      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
-      std::size( detail::syscall_buffer ),
-      reinterpret_cast< char* >( buffer.data() ),
-      buffer.get_size(),
-      &bytes_written
+   int32_t retval = koinos_put_object(
+      id,
+      reinterpret_cast< const char* >( key.data() ),
+      key.size(),
+      reinterpret_cast< const char* >( value.data() ),
+      value.size()
    );
 
    if ( retval )
-   {
-      koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
-      result res;
-      res.mutable_error().deserialize( rdbuf );
-      exit( retval, res );
-   }
+      exit( retval );
 }
 
-inline std::string get_object( const object_space& space, const std::string& key, uint32_t object_size_hint = 0 )
+inline bytes get_object( uint32_t id, const bytes& key )
 {
    if ( key.size() > detail::max_key_size )
-   {
       revert( "key size exceeds max size of " + std::to_string( detail::max_key_size ) );
-   }
 
-   get_object_arguments args;
-   args.mutable_space() = space;
-   args.mutable_key().set( reinterpret_cast< const uint8_t* >( key.data() ), key.size() );
+   uint32_t ret_len = std::size( detail::syscall_buffer );
 
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   args.serialize( buffer );
-
-   uint32_t bytes_written = 0;
-
-   int32_t retval = invoke_system_call(
-      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::get_object ),
+   int32_t retval = koinos_get_object(
+      id,
+      reinterpret_cast< const char* >( key.data() ),
+      key.size(),
       reinterpret_cast< char* >( detail::syscall_buffer.data() ),
-      std::size( detail::syscall_buffer ),
-      reinterpret_cast< char* >( buffer.data() ),
-      buffer.get_size(),
-      &bytes_written
+      &ret_len
    );
 
-   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
-
    if ( retval )
-   {
-      result res;
-      res.mutable_error().deserialize( rdbuf );
-      exit( retval, res );
-   }
+      exit( retval );
 
-   koinos::chain::get_object_result< detail::max_argument_size, detail::max_key_size > res;
-   res.deserialize( rdbuf );
-
-   return std::string( reinterpret_cast< const char* >( res.get_value().get_value().get_const() ), res.get_value().get_value().get_length() );
+   return bytes( reinterpret_cast< std::byte* >( detail::syscall_buffer.data() ), reinterpret_cast< std::byte* >( detail::syscall_buffer.data() ) + ret_len );
 }
 
 } // detail
 
 template< typename T >
-void put_object( const object_space& space, const std::string& key, const T& value )
+inline T get_object( uint32_t id, const bytes& key )
 {
-   std::array< uint8_t, detail::max_argument_size > buf;
-   koinos::write_buffer buffer( buf.data(), buf.size() );
-   value.serialize( buffer );
-   detail::put_object( space, key, std::string( reinterpret_cast< char* >( buffer.data() ), buffer.get_size() ) );
+   auto result = detail::get_object( id, key );
+
+   // TODO: Safety
+   return *reinterpret_cast< T* >( result.data() );
 }
 
 template< typename T >
-bool get_object( const object_space& space, const std::string& key, T& t )
+inline void put_object( uint32_t id, const bytes& key, const T& value )
 {
-   auto obj = detail::get_object( space, key );
-   if ( obj.size() )
-   {
-      koinos::read_buffer buffer( reinterpret_cast< uint8_t* >( obj.data() ), obj.size() );
-      t.deserialize( buffer );
-      return true;
-   }
+   bytes value_bytes(
+      reinterpret_cast< std::byte* >( &const_cast< T& >( value ) ),
+      reinterpret_cast< std::byte* >( &const_cast< T& >( value ) ) + sizeof( value ) );
 
-   return false;
+   put_object( id, key, value_bytes );
 }
 
 inline void remove_object( const object_space& space, const std::string& key )
@@ -821,30 +790,10 @@ inline std::string get_prev_object( const object_space& space, const std::string
 
 inline void log( const std::string& s )
 {
-   koinos::chain::log_arguments< detail::max_argument_size > args;
-   args.mutable_message() = s.c_str();
-
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   args.serialize( buffer );
-
-   uint32_t bytes_written = 0;
-
-   int32_t retval = invoke_system_call(
-      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::log ),
-      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
-      std::size( detail::syscall_buffer ),
-      reinterpret_cast< char* >( buffer.data() ),
-      buffer.get_size(),
-      &bytes_written
-   );
+   int32_t retval = koinos_log( s.data(), s.size() );
 
    if ( retval )
-   {
-      koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
-      result res;
-      res.mutable_error().deserialize( rdbuf );
-      exit( retval, res );
-   }
+      exit( retval );
 }
 
 template< typename T >
@@ -1137,37 +1086,28 @@ inline std::pair< int32_t, result > call( const std::string& id, uint32_t entry_
    return std::make_pair( retval, std::move( res ) );
 }
 
-inline std::pair< uint32_t, std::string > get_arguments()
+inline std::pair< uint32_t, bytes > get_arguments()
 {
-   koinos::chain::get_arguments_arguments args;
+   uint32_t entry_point = 0;
+   uint32_t args_length = std::size( detail::syscall_buffer );
 
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   args.serialize( buffer );
-
-   uint32_t bytes_written = 0;
-
-   int32_t retval = invoke_system_call(
-      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::get_arguments ),
+   int32_t retval = koinos_get_arguments(
+      &entry_point,
       reinterpret_cast< char* >( detail::syscall_buffer.data() ),
-      std::size( detail::syscall_buffer ),
-      reinterpret_cast< char* >( buffer.data() ),
-      buffer.get_size(),
-      &bytes_written
+      &args_length
    );
-
-   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
 
    if ( retval )
    {
-      result res;
-      res.mutable_error().deserialize( rdbuf );
-      exit( retval, res );
+      exit( retval );
    }
 
-   koinos::chain::get_arguments_result< detail::max_argument_size > res;
-   res.deserialize( rdbuf );
+   return std::make_pair( entry_point, bytes( reinterpret_cast< std::byte* >( detail::syscall_buffer.data() ), reinterpret_cast< std::byte* >( detail::syscall_buffer.data() ) + args_length ) );
+}
 
-   return std::make_pair( res.get_value().entry_point(), std::string( reinterpret_cast< const char* >( res.get_value().get_arguments().get_const() ), res.get_value().get_arguments().get_length() ) );
+inline void exit( int32_t code, const std::string& msg )
+{
+   koinos_exit( code, msg.data(), msg.size() );
 }
 
 inline void exit( int32_t code, const result& r )
@@ -1264,74 +1204,37 @@ inline std::string get_contract_id()
    return std::string( reinterpret_cast< const char* >( res.get_value().get_const() ), res.get_value().get_length() );
 }
 
-inline std::pair< std::string, koinos::chain::privilege > get_caller()
+inline bytes get_caller()
 {
-   koinos::chain::get_caller_arguments args;
+   uint32_t ret_len = std::size( detail::syscall_buffer );
 
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   args.serialize( buffer );
-
-   uint32_t bytes_written = 0;
-
-   int32_t retval = invoke_system_call(
-      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::get_caller ),
+   int32_t retval = koinos_get_caller(
       reinterpret_cast< char* >( detail::syscall_buffer.data() ),
-      std::size( detail::syscall_buffer ),
-      reinterpret_cast< char* >( buffer.data() ),
-      buffer.get_size(),
-      &bytes_written
+      &ret_len
    );
 
-   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
-
    if ( retval )
-   {
-      result res;
-      res.mutable_error().deserialize( rdbuf );
-      exit( retval, res );
-   }
+      exit( retval );
 
-   koinos::chain::get_caller_result< detail::max_hash_size > res;
-   res.deserialize( rdbuf );
-
-   auto value = res.value();
-   return std::make_pair( std::string( reinterpret_cast< const char* >( value.get_caller().get_const() ), value.get_caller().get_length() ), value.get_caller_privilege() );
+   return bytes( reinterpret_cast< std::byte* >( detail::syscall_buffer.data() ), reinterpret_cast< std::byte* >( detail::syscall_buffer.data() ) + ret_len );
 }
 
-inline bool check_authority( const std::string& account, const std::string& data = std::string() )
+inline bool check_authority( const bytes& account, const bytes& data = bytes() )
 {
-   koinos::chain::check_authority_arguments< detail::max_hash_size, detail::max_argument_size > args;
-   args.set_type( koinos::chain::authorization_type::contract_call );
-   args.mutable_account().set( reinterpret_cast< const uint8_t* >( account.data() ), account.size() );
-   args.mutable_data().set( reinterpret_cast< const uint8_t* >( data.data() ), data.size() );
+   bool authorized = false;
 
-   koinos::write_buffer buffer( detail::syscall_buffer.data(), detail::syscall_buffer.size() );
-   args.serialize( buffer );
-
-   uint32_t bytes_written = 0;
-
-   int32_t retval = invoke_system_call(
-      std::underlying_type_t< koinos::chain::system_call_id >( koinos::chain::system_call_id::check_authority ),
-      reinterpret_cast< char* >( detail::syscall_buffer.data() ),
-      std::size( detail::syscall_buffer ),
-      reinterpret_cast< char* >( buffer.data() ),
-      buffer.get_size(),
-      &bytes_written
+   int32_t retval = koinos_check_authority(
+      reinterpret_cast< const char* >( account.data() ),
+      account.size(),
+      reinterpret_cast< const char* >( data.data() ),
+      data.size(),
+      &authorized
    );
 
-   koinos::read_buffer rdbuf( detail::syscall_buffer.data(), bytes_written );
-
    if ( retval )
-   {
-      result res;
-      res.mutable_error().deserialize( rdbuf );
-      exit( retval, res );
-   }
+      exit( retval );
 
-   koinos::chain::check_authority_result res;
-   res.deserialize( rdbuf );
-
-   return res.value();
+   return authorized;
 }
 
 inline std::string get_contract_name( const std::string& address )
