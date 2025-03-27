@@ -62,12 +62,12 @@ extern "C" int32_t koinos_get_object( uint32_t id, const char* key_ptr, uint32_t
 extern "C" int32_t koinos_put_object( uint32_t id, const char* key_ptr, uint32_t key_len, const char* value_ptr, uint32_t value_len );
 extern "C" int32_t koinos_check_authority( const char* account_ptr, uint32_t account_len, const char* data_ptr, uint32_t data_len, bool* value );
 extern "C" int32_t koinos_log( const char* msg_ptr, uint32_t msg_len );
-extern "C" int32_t koinos_exit( uint32_t code, const char* res_bytes, uint32_t res_len );
+extern "C" int32_t koinos_exit( int32_t code, const char* res_bytes, uint32_t res_len );
 extern "C" int32_t koinos_get_arguments( uint32_t* entry_point, char* args_ptr, uint32_t* args_len );
 
 namespace koinos::system {
 
-using bytes = std::vector< std::byte >;
+using bytes = std::string_view;
 
 using object_space = koinos::chain::object_space< detail::zone_size >;
 
@@ -658,7 +658,7 @@ inline bytes get_object( uint32_t id, const bytes& key )
    if ( retval )
       exit( retval );
 
-   return bytes( reinterpret_cast< std::byte* >( detail::syscall_buffer.data() ), reinterpret_cast< std::byte* >( detail::syscall_buffer.data() ) + ret_len );
+   return bytes( reinterpret_cast< char* >( detail::syscall_buffer.data() ), ret_len );
 }
 
 } // detail
@@ -669,17 +669,18 @@ inline T get_object( uint32_t id, const bytes& key )
    auto result = detail::get_object( id, key );
 
    // TODO: Safety
-   return *reinterpret_cast< T* >( result.data() );
+   if( result.size() == 0 )
+      return T();
+
+   return *reinterpret_cast< T* >( const_cast< char* >( result.data() ) );
 }
 
 template< typename T >
 inline void put_object( uint32_t id, const bytes& key, const T& value )
 {
-   bytes value_bytes(
-      reinterpret_cast< std::byte* >( &const_cast< T& >( value ) ),
-      reinterpret_cast< std::byte* >( &const_cast< T& >( value ) ) + sizeof( value ) );
+   bytes value_bytes( reinterpret_cast< char* >( const_cast< T* >( &value ) ), sizeof( value ) );
 
-   put_object( id, key, value_bytes );
+   detail::put_object( id, key, value_bytes );
 }
 
 inline void remove_object( const object_space& space, const std::string& key )
@@ -1102,7 +1103,7 @@ inline std::pair< uint32_t, bytes > get_arguments()
       exit( retval );
    }
 
-   return std::make_pair( entry_point, bytes( reinterpret_cast< std::byte* >( detail::syscall_buffer.data() ), reinterpret_cast< std::byte* >( detail::syscall_buffer.data() ) + args_length ) );
+   return std::make_pair( entry_point, bytes( reinterpret_cast< char* >( detail::syscall_buffer.data() ), args_length ) );
 }
 
 inline void exit( int32_t code, const std::string& msg )
@@ -1145,11 +1146,7 @@ inline void exit( const ::EmbeddedProto::MessageInterface& msg )
 
 inline void revert( const std::string& msg, int32_t code )
 {
-   result r;
-   r.mutable_error().mutable_message().set( reinterpret_cast< const char* >( msg.data() ), msg.size() );
-   code = std::max( static_cast< int32_t >( chain::error_code::reversion ), code );
-
-   exit( code, r );
+   exit( code, msg );
 }
 
 inline void revert( const std::string& msg, chain::error_code code )
@@ -1159,11 +1156,7 @@ inline void revert( const std::string& msg, chain::error_code code )
 
 inline void fail( const std::string& msg, int32_t code )
 {
-   result r;
-   r.mutable_error().mutable_message().set( reinterpret_cast< const char* >( msg.data() ), msg.size() );
-   code = std::min( static_cast< int32_t >( chain::error_code::failure ), code );
-
-   exit( code, r );
+   exit( code, msg );
 }
 
 inline void fail( const std::string& msg, chain::error_code code )
@@ -1216,7 +1209,7 @@ inline bytes get_caller()
    if ( retval )
       exit( retval );
 
-   return bytes( reinterpret_cast< std::byte* >( detail::syscall_buffer.data() ), reinterpret_cast< std::byte* >( detail::syscall_buffer.data() ) + ret_len );
+   return bytes( reinterpret_cast< char* >( detail::syscall_buffer.data() ), ret_len );
 }
 
 inline bool check_authority( const bytes& account, const bytes& data = bytes() )
